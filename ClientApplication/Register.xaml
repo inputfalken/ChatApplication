@@ -1,0 +1,18 @@
+﻿<Window x:Class="ClientApplication.Register"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Register" Height="300" Width="300">
+    <Grid>
+        <Label x:Name="Label" Content="ServerMessage" HorizontalContentAlignment="Center" HorizontalAlignment="Center"
+               Margin="0,41,0,0" VerticalAlignment="Top" Width="272" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBox x:Name="UserNameBox" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="UserName"
+                     VerticalAlignment="Top" Width="120" />
+            <Button x:Name="RegisterButton" Content="Sign in" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Width="75" Height="23" />
+        </StackPanel>
+    </Grid>
+</Window>
