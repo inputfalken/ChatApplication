@@ -21,14 +21,22 @@ namespace Server {
 
         private static async Task HandleClient(TcpClient client) {
             var clientStream = client.GetStream();
-            var welcomeMessageSent = MessageClientAsync("Welcome please enter your name", clientStream);
+            var welcomeMessageSent = MessageClientAsync(
+                ChatProtcol.Message("Welcome please enter your name", "Server").ToString(),
+                clientStream
+            );
             ClientConnects?.Invoke("Client connected");
             await welcomeMessageSent;
             var userName = await RegisterUserAsync(client);
             var writeMessageAsync = MessageClientAsync(
-                $"You have been sucessfully registered with the name: {userName}", clientStream);
-            var messageClientsExcept = MessageOtherClientsAsync(ChatProtcol.MemberJoins(userName).ToString(),
-                userName);
+                ChatProtcol.Message($"You have been sucessfully registered with the name: {userName}", "Server")
+                    .ToString(),
+                clientStream
+            );
+            var messageClientsExcept = MessageOtherClientsAsync(
+                ChatProtcol.MemberJoins(userName).ToString(),
+                userName
+            );
             await writeMessageAsync;
             await messageClientsExcept;
             await Task.Run(() => ChatSessionAsync(userName));
@@ -71,7 +79,8 @@ namespace Server {
             Command(line, userName)
                 .Match(
                     async cmdResponse => await MessageClientAsync(cmdResponse, userName),
-                    async () => await MessageOtherClientsAsync($"{ChatProtcol.Message(line, userName)}", userName)
+                    async () =>
+                        await MessageOtherClientsAsync($"{ChatProtcol.Message(line, userName)}", userName)
                 );
         }
 
