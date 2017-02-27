@@ -18,8 +18,8 @@ namespace Protocol {
         private string Result { get; }
 
         //This could be one method using enum.
-        public static ChatProtcol Message(string message, string userName)
-            => new UserAction(userName, "message", message);
+        public static ChatProtcol Message(string message, string sender)
+            => new Message(sender, "message", message);
 
         //This could be one method using enum.
         public static ChatProtcol MemberJoins(string userName) => new ChatProtcol(NewMember, userName);
