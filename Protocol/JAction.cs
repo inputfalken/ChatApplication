@@ -5,9 +5,9 @@ namespace Protocol {
     /// JSON Action: Jaction
     /// </summary>
     public class JAction {
-        private const string NewMemberOperation = "newMember";
-        private const string DisconnectOperation = "disconnect";
-        private const string MessageOperation = "message";
+        private const string NewMemberAction = "newMember";
+        private const string DisconnectAction = "disconnect";
+        private const string MessageAction = "message";
 
         [JsonConstructor]
         protected JAction(string action, string result) {
@@ -23,17 +23,17 @@ namespace Protocol {
 
         //This could be one method using enum.
         public static Message Message(string message, string sender)
-            => new Message(sender, MessageOperation, message);
+            => new Message(sender, MessageAction, message);
 
         public static Message ParseToMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
 
         public static JAction ParseToJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
 
         //This could be one method using enum.
-        public static JAction MemberJoins(string userName) => new JAction(NewMemberOperation, userName);
+        public static JAction MemberJoins(string userName) => new JAction(NewMemberAction, userName);
 
         //This could be one method using enum.
-        public static JAction MemberDisconnects(string userName) => new JAction(DisconnectOperation, userName);
+        public static JAction MemberDisconnects(string userName) => new JAction(DisconnectAction, userName);
 
         public override string ToString() => JsonConvert.SerializeObject(this);
     }
