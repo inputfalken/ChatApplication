@@ -27,7 +27,7 @@ namespace Protocol {
 
         public static Message ParseToMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
 
-        public static JAction ParseToOperation(string json) => JsonConvert.DeserializeObject<JAction>(json);
+        public static JAction ParseToJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
 
         //This could be one method using enum.
         public static JAction MemberJoins(string userName) => new JAction(NewMemberOperation, userName);
