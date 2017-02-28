@@ -22,19 +22,19 @@ namespace Server {
         private static async Task HandleClient(TcpClient client) {
             var clientStream = client.GetStream();
             var welcomeMessageSent = MessageClientAsync(
-                ChatProtcol.Message("Welcome please enter your name", "Server").ToString(),
+                JAction.Message("Welcome please enter your name", "Server").ToString(),
                 clientStream
             );
             ClientConnects?.Invoke("Client connected");
             await welcomeMessageSent;
             var userName = await RegisterUserAsync(client);
             var writeMessageAsync = MessageClientAsync(
-                ChatProtcol.Message($"You have been sucessfully registered with the name: {userName}", "Server")
+                JAction.Message($"You have been sucessfully registered with the name: {userName}", "Server")
                     .ToString(),
                 clientStream
             );
             var messageClientsExcept = MessageOtherClientsAsync(
-                ChatProtcol.MemberJoins(userName).ToString(),
+                JAction.MemberJoins(userName).ToString(),
                 userName
             );
             await writeMessageAsync;
@@ -80,12 +80,12 @@ namespace Server {
                 .Match(
                     async cmdResponse => await MessageClientAsync(cmdResponse, userName),
                     async () =>
-                        await MessageOtherClientsAsync($"{ChatProtcol.Message(line, userName)}", userName)
+                        await MessageOtherClientsAsync($"{JAction.Message(line, userName)}", userName)
                 );
         }
 
         private static async Task DisconnectClientAsync(string userName) {
-            var message = ChatProtcol.MemberDisconnects(userName).ToString();
+            var message = JAction.MemberDisconnects(userName).ToString();
             UserNameToClient.Remove(userName);
             await AnnounceAsync(message);
             ClientDisconects?.Invoke(message);

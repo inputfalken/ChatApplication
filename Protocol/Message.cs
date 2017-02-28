@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 namespace Protocol {
-    public class Message : ChatProtcol {
+    public class Message : JAction {
         [JsonConstructor]
         public Message(string sender, string action, string result) : base(action, result) {
             Sender = sender;
