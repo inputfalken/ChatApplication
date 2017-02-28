@@ -21,6 +21,10 @@ namespace Protocol {
         public static Message Message(string message, string sender)
             => new Message(sender, "message", message);
 
+        public static Message ParseToMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
+
+        public static ChatProtcol ParseToAction(string json) => JsonConvert.DeserializeObject<ChatProtcol>(json);
+
         //This could be one method using enum.
         public static ChatProtcol MemberJoins(string userName) => new ChatProtcol(NewMember, userName);
 
