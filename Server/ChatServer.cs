@@ -99,12 +99,13 @@ namespace Server {
         public static event Action<string> ClientConnects;
         public static event Action<string> ClientDisconects;
 
+        // TODO Return maybe string which HandleClient maybe handle if the client succeded
+        // Could use a while loop  instead and force the user to stay
         private static async Task<string> RegisterUserAsync(TcpClient client) {
             var streamReader = new StreamReader(client.GetStream());
             var memberJoins = JAction.ParseToJAction(await streamReader.ReadLineAsync());
             if (memberJoins.Action != JAction.NewMemberAction) {
                 await MessageClientAsync(JAction.Message("Wrong action", "Server").ToString(), client.GetStream());
-                throw new Exception("Wrong Action");
             }
             UserNameToClient.Add(memberJoins.Result, client);
             return memberJoins.Result;
