@@ -31,8 +31,12 @@ namespace Client {
             await _client.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
-        public async Task Register(string userName) {
+        public async Task<bool> Register(string userName) {
             await SendMessage(JAction.MemberJoins(userName).ToString());
+            var toJAction = JAction.ParseToJAction(await new StreamReader(_client.GetStream()).ReadLineAsync());
+            if (toJAction.Action != JAction.StatusAction)
+                throw new IOException($"Expected Action :{JAction.StatusAction}, was: {toJAction.Action}");
+            return toJAction.Result == JAction.Success;
         }
 
         public void CloseConnection() {

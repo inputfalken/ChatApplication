@@ -27,9 +27,17 @@ namespace Server {
             );
             ClientConnects?.Invoke("Client connected");
             await welcomeMessageSent;
-            var userName = await RegisterUserAsync(client);
+            var maybeName = await RegisterUserAsync(client);
+            while (!maybeName.HasValue)
+                maybeName = await await
+                    MessageClientAsync(JAction.StatusFail.ToString(), clientStream)
+                        .ContinueWith(t => RegisterUserAsync(client));
+            var userName = maybeName.Value;
+
+            //Send back message to approve registration
+            await MessageClientAsync(JAction.StatusSucess.ToString(), userName);
             var writeMessageAsync = MessageClientAsync(
-                JAction.Message($"You have been sucessfully registered with the name: {userName}", "Server")
+                JAction.Message($"You have been sucessfully registered with the name: {maybeName}", "Server")
                     .ToString(),
                 clientStream
             );
@@ -101,14 +109,14 @@ namespace Server {
 
         // TODO Return maybe string which HandleClient maybe handle if the client succeded
         // Could use a while loop  instead and force the user to stay
-        private static async Task<string> RegisterUserAsync(TcpClient client) {
+        private static async Task<Maybe<string>> RegisterUserAsync(TcpClient client) {
             var streamReader = new StreamReader(client.GetStream());
-            var memberJoins = JAction.ParseToJAction(await streamReader.ReadLineAsync());
-            if (memberJoins.Action != JAction.NewMemberAction) {
-                await MessageClientAsync(JAction.Message("Wrong action", "Server").ToString(), client.GetStream());
-            }
-            UserNameToClient.Add(memberJoins.Result, client);
-            return memberJoins.Result;
+            return JAction.ParseToJAction(await streamReader.ReadLineAsync())
+                .ToMaybe()
+                .Where(action => action.Action == JAction.NewMemberAction)
+                .Where(action => !UserNameToClient.ContainsKey(action.Result))
+                .Do(action => UserNameToClient.Add(action.Result, client))
+                .Select(action => action.Result);
         }
 
 
