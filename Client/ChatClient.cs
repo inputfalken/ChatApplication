@@ -31,6 +31,10 @@ namespace Client {
             await _client.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
+        public async Task Register(string userName) {
+            await SendMessage(JAction.MemberJoins(userName).ToString());
+        }
+
         public void CloseConnection() {
             _client.GetStream().Close();
             _client.Close();

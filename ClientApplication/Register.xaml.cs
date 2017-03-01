@@ -27,7 +27,7 @@ namespace ClientApplication {
         }
 
         private async void RegisterButtonOnClick(object sender, RoutedEventArgs routedEventArgs) {
-            await NetusClient.SendMessage(UserNameBox.Text);
+            await NetusClient.Register(UserNameBox.Text);
             MessageBox.Show(await NetusClient.ReadMessage());
             new MainWindow(NetusClient).Show();
             Close();
