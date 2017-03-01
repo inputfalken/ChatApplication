@@ -8,6 +8,6 @@ namespace Protocol {
         }
 
         [JsonProperty("sender")]
-        private string Sender { get; }
+        public string Sender { get; }
     }
 }

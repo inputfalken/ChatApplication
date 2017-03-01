@@ -16,10 +16,10 @@ namespace Protocol {
         }
 
         [JsonProperty("action")]
-        private string Action { get; }
+        public string Action { get; }
 
         [JsonProperty("result")]
-        private string Result { get; }
+        public string Result { get; }
 
         //This could be one method using enum.
         public static Message Message(string message, string sender)
