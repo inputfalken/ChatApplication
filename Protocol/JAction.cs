@@ -8,7 +8,7 @@ namespace Protocol {
         public const string NewMemberAction = "newMember";
         private const string DisconnectAction = "disconnect";
         private const string MessageAction = "message";
-        public const string ValidateAction = "validate";
+        public const string StatusAction = "validate";
         public const string Success = "sucess";
         public const string Fail = "fail";
 
@@ -33,9 +33,9 @@ namespace Protocol {
         public static JAction ParseToJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
 
 
-        public static JAction StatusFail => new JAction(ValidateAction, Fail);
+        public static JAction StatusFail => new JAction(StatusAction, Fail);
 
-        public static JAction StatusSucess => new JAction(ValidateAction, Success);
+        public static JAction StatusSucess => new JAction(StatusAction, Success);
 
         //This could be one method using enum.
         public static JAction MemberJoins(string userName) => new JAction(NewMemberAction, userName);
