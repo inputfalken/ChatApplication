@@ -30,12 +30,12 @@ namespace Server {
             var maybeName = await RegisterUserAsync(client);
             while (!maybeName.HasValue)
                 maybeName = await await
-                    MessageClientAsync(JAction.StatusFail.ToString(), clientStream)
+                    MessageClientAsync(JAction.StatusFail().ToString(), clientStream)
                         .ContinueWith(t => RegisterUserAsync(client));
             var userName = maybeName.Value;
 
             //Send back message to approve registration
-            await MessageClientAsync(JAction.StatusSucess.ToString(), userName);
+            await MessageClientAsync(JAction.StatusSucess().ToString(), userName);
             var writeMessageAsync = MessageClientAsync(
                 JAction.Message($"You have been sucessfully registered with the name: {maybeName}", "Server")
                     .ToString(),

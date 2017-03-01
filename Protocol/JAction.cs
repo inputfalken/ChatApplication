@@ -33,9 +33,9 @@ namespace Protocol {
         public static JAction ParseToJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
 
 
-        public static JAction StatusFail => new JAction(StatusAction, Fail);
+        public static JAction StatusFail() => new JAction(StatusAction, Fail);
 
-        public static JAction StatusSucess => new JAction(StatusAction, Success);
+        public static JAction StatusSucess() => new JAction(StatusAction, Success);
 
         //This could be one method using enum.
         public static JAction MemberJoins(string userName) => new JAction(NewMemberAction, userName);
