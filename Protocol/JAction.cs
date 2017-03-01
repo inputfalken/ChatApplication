@@ -2,7 +2,7 @@
 
 namespace Protocol {
     /// <summary>
-    /// JSON Action: Jaction
+    ///     JSON Action: Jaction
     /// </summary>
     public class JAction {
         public const string NewMemberAction = "newMember";
