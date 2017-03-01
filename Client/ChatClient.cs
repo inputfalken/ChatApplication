@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Protocol;
 
 namespace Client {
     public class ChatClient {
@@ -21,7 +22,8 @@ namespace Client {
         public async Task Connect() => await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
 
         public async Task<string> ReadMessage() {
-            return await new StreamReader(_client.GetStream()).ReadLineAsync();
+            var message = JAction.ParseToMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
+            return $"{message.Sender}: {message.Result}";
         }
 
         public async Task SendMessage(string message) {
