@@ -8,6 +8,7 @@ namespace Protocol {
         public const string NewMemberAction = "newMember";
         private const string DisconnectAction = "disconnect";
         private const string MessageAction = "message";
+        private const string ValidateAction = "validate";
 
         [JsonConstructor]
         protected JAction(string action, string result) {
@@ -28,6 +29,8 @@ namespace Protocol {
         public static Message ParseToMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
 
         public static JAction ParseToJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
+
+        public static JAction Validate(string status) => new JAction(ValidateAction, status);
 
         //This could be one method using enum.
         public static JAction MemberJoins(string userName) => new JAction(NewMemberAction, userName);
