@@ -40,6 +40,7 @@ namespace Server {
             await writeMessageAsync;
             await messageClientsExcept;
             await Task.Run(() => ChatSessionAsync(userName));
+            await DisconnectClientAsync(userName);
         }
 
         private static Maybe<string> Command(string command, string userName) {
@@ -72,7 +73,6 @@ namespace Server {
                         .Do(message => ParseMessage(message, userName))
                         .HasValue;
             }
-            await DisconnectClientAsync(userName);
         }
 
         private static void ParseMessage(string line, string userName) {
