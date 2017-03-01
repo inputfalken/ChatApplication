@@ -5,7 +5,7 @@ namespace Protocol {
     /// JSON Action: Jaction
     /// </summary>
     public class JAction {
-        private const string NewMemberAction = "newMember";
+        public const string NewMemberAction = "newMember";
         private const string DisconnectAction = "disconnect";
         private const string MessageAction = "message";
 
@@ -34,6 +34,7 @@ namespace Protocol {
 
         //This could be one method using enum.
         public static JAction MemberDisconnects(string userName) => new JAction(DisconnectAction, userName);
+
 
         public override string ToString() => JsonConvert.SerializeObject(this);
     }
