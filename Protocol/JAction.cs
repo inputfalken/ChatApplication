@@ -25,23 +25,23 @@ namespace Protocol {
         public string Result { get; }
 
         //This could be one method using enum.
-        public static Message Message(string message, string sender)
-            => new Message(sender, MessageAction, message);
+        public static string Message(string message, string sender)
+            => new Message(sender, MessageAction, message).ToString();
 
-        public static Message ParseToMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
+        public static Message ParseMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
 
-        public static JAction ParseToJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
+        public static JAction ParseJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
 
 
-        public static JAction StatusFail() => new JAction(StatusAction, Fail);
+        public static string StatusFail() => new JAction(StatusAction, Fail).ToString();
 
-        public static JAction StatusSucess() => new JAction(StatusAction, Success);
-
-        //This could be one method using enum.
-        public static JAction MemberJoins(string userName) => new JAction(NewMemberAction, userName);
+        public static string StatusSucess() => new JAction(StatusAction, Success).ToString();
 
         //This could be one method using enum.
-        public static JAction MemberDisconnects(string userName) => new JAction(DisconnectAction, userName);
+        public static string MemberJoins(string userName) => new JAction(NewMemberAction, userName).ToString();
+
+        //This could be one method using enum.
+        public static string MemberDisconnects(string userName) => new JAction(DisconnectAction, userName).ToString();
 
 
         public override string ToString() => JsonConvert.SerializeObject(this);
