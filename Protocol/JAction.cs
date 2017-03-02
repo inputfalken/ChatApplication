@@ -7,7 +7,7 @@ namespace Protocol {
     public class JAction {
         public const string NewMemberAction = "newMember";
         private const string DisconnectAction = "disconnect";
-        private const string MessageAction = "message";
+        public const string MessageAction = "message";
         public const string StatusAction = "validate";
         public const string Success = "sucess";
         public const string Fail = "fail";

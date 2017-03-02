@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -7,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Functional.Maybe;
+using Protocol;
 using static Protocol.JAction;
 
 namespace Server {
@@ -61,14 +63,15 @@ namespace Server {
                 while (connected)
                     connected = (await streamReader.ReadLineAsync())
                         .ToMaybe()
-                        .Do(async line => await HandleClientAction(line, userName))
+                        .Select(ParseJAction)
+                        .Do(async action => await HandleAction(action, userName))
                         .HasValue;
             }
         }
 
-        private static async Task HandleClientAction(string input, string userName) {
-            var jAction = ParseJAction(input);
-            await MessageOtherClientsAsync($"{Message(jAction.Result, userName)}", userName);
+        private static async Task HandleAction(JAction jAction, string userName) {
+            if (jAction.Action == MessageAction)
+                await MessageOtherClientsAsync($"{Message(jAction.Result, userName)}", userName);
         }
 
         private static async Task DisconnectClientAsync(string userName) {
