@@ -70,6 +70,7 @@ namespace Server {
         }
 
         private static async Task HandleAction(JAction jAction, string userName) {
+            // This is where the client can create requests about specifik data.
             if (jAction.Action == MessageAction)
                 await MessageOtherClientsAsync($"{Message(jAction.Result, userName)}", userName);
         }
