@@ -9,10 +9,12 @@ namespace ClientApplication {
     /// </summary>
     public partial class MainWindow : Window {
         private readonly ChatClient _netusClient;
+        private readonly string _userName;
 
-        public MainWindow(ChatClient netusClient) {
+        public MainWindow(ChatClient netusClient, string userName) {
             InitializeComponent();
             _netusClient = netusClient;
+            _userName = userName;
             SendBtn.Click += SendBtnOnClick;
             Loaded += OnLoaded;
             Closed += OnClosed;
@@ -26,7 +28,7 @@ namespace ClientApplication {
         private async void SendBtnOnClick(object sender, RoutedEventArgs routedEventArgs) {
             var messageBoxText = MessageInputBox.Text;
             //Server needs to send back the message with a timestamp for when message was recieved.
-            await _netusClient.SendMessage(messageBoxText);
+            await _netusClient.SendMessage(messageBoxText, _userName);
             AddToChatBox(messageBoxText);
         }
 

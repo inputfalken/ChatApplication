@@ -61,9 +61,14 @@ namespace Server {
                 while (connected)
                     connected = (await streamReader.ReadLineAsync())
                         .ToMaybe()
-                        .Do(async line => await MessageOtherClientsAsync($"{Message(line, userName)}", userName))
+                        .Do(async line => await HandleClientAction(line, userName))
                         .HasValue;
             }
+        }
+
+        private static async Task HandleClientAction(string input, string userName) {
+            var jAction = ParseJAction(input);
+            await MessageOtherClientsAsync($"{Message(jAction.Result, userName)}", userName);
         }
 
         private static async Task DisconnectClientAsync(string userName) {

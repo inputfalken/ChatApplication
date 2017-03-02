@@ -31,7 +31,7 @@ namespace ClientApplication {
             if (success) {
                 var message = await NetusClient.ReadMessage();
                 MessageBox.Show(message);
-                new MainWindow(NetusClient).Show();
+                new MainWindow(NetusClient, UserNameBox.Text).Show();
                 Close();
             }
             else {

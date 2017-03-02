@@ -27,13 +27,17 @@ namespace Client {
             return $"{message.Sender}: {message.Result}";
         }
 
-        public async Task SendMessage(string message) {
+        public async Task SendMessage(string message, string userName) {
+            await MessageAsync(JAction.Message(message, userName));
+        }
+
+        private async Task MessageAsync(string message) {
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
             await _client.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
 
         public async Task<bool> Register(string userName) {
-            await SendMessage(JAction.MemberJoins(userName));
+            await MessageAsync(JAction.MemberJoins(userName));
             var parseMessage = JAction.ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
             var status = JAction.ParseJAction(parseMessage.Result);
             if (status.Action == JAction.StatusAction) return status.Result == JAction.Success;
