@@ -21,34 +21,28 @@ namespace Server {
         }
 
         private static async Task HandleClient(TcpClient client) {
+            ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
-            var welcomeMessageSent = MessageClientAsync(
+            var registerUser = await await MessageClientAsync(
                 Message("Welcome please enter your name", Server),
                 clientStream
-            );
-            ClientConnects?.Invoke("Client connected");
-            await welcomeMessageSent;
-            var maybeName = await RegisterUserAsync(client);
-            while (!maybeName.HasValue)
-                maybeName = await await
+            ).ContinueWith(t => RegisterUserAsync(client));
+            while (!registerUser.HasValue)
+                registerUser = await await
                     MessageClientAsync(Message(StatusFail(), Server), clientStream)
                         .ContinueWith(t => RegisterUserAsync(client));
-            var userName = maybeName.Value;
+            var userName = registerUser.Value;
 
             //Send back message to approve registration
-            await MessageClientAsync(Message(StatusSucess(), Server), userName);
-            var writeMessageAsync = MessageClientAsync(
-                Message($"You have been sucessfully registered with the name: {maybeName}", Server),
-                clientStream
-            );
-            var messageClientsExcept = MessageOtherClientsAsync(
-                MemberJoins(userName),
-                userName
-            );
-            await writeMessageAsync;
-            await messageClientsExcept;
-            await Task.Run(() => ChatSessionAsync(userName));
-            await DisconnectClientAsync(userName);
+            await await await MessageClientAsync(Message(StatusSucess(), Server), userName)
+                .ContinueWith(successRegister => MessageClientAsync(
+                        Message($"You have been sucessfully registered with the name: {userName}", Server),
+                        clientStream
+                    )
+                )
+                .ContinueWith(msgClient => MessageOtherClientsAsync(MemberJoins(userName), userName))
+                .ContinueWith(msgOtherClient => ChatSessionAsync(userName)
+                    .ContinueWith(chastSession => DisconnectClientAsync(userName)));
         }
 
         private static Maybe<string> Command(string command, string userName) {
