@@ -23,15 +23,15 @@ namespace Server {
         private static async Task HandleClient(TcpClient client) {
             ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
-            var registerUser = await await MessageClientAsync(
+            var userRegistered = await await MessageClientAsync(
                 Message("Welcome please enter your name", Server),
                 clientStream
             ).ContinueWith(t => RegisterUserAsync(client));
-            while (!registerUser.HasValue)
-                registerUser = await await
+            while (!userRegistered.HasValue)
+                userRegistered = await await
                     MessageClientAsync(Message(StatusFail(), Server), clientStream)
                         .ContinueWith(t => RegisterUserAsync(client));
-            var userName = registerUser.Value;
+            var userName = userRegistered.Value;
 
             //Send back message to approve registration
             await MessageClientAsync(Message(StatusSucess(), Server), userName)
