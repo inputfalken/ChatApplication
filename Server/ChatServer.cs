@@ -34,7 +34,7 @@ namespace Server {
             var userName = userRegistered.Value;
 
             //Send back message to approve registration
-            await MessageClientAsync(Message(StatusSucess(), Server), userName)
+            await await MessageClientAsync(Message(StatusSucess(), Server), userName)
                 .ContinueWith(successRegister => MessageClientAsync(
                         Message($"You have been sucessfully registered with the name: {userName}", Server),
                         userName
