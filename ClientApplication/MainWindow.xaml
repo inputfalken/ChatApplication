@@ -6,11 +6,13 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <ListBox x:Name="ChatBox" HorizontalAlignment="Left" Height="231" Margin="34,30,0,0" VerticalAlignment="Top"
-                 Width="443" />
-        <TextBox x:Name="MessageInputBox" TextWrapping="Wrap" Text="TextBox" Margin="34,261,129,35" />
-        <Button x:Name="SendBtn" Content="Send" HorizontalAlignment="Left" Margin="388,261,0,0" VerticalAlignment="Top"
+        <ListBox x:Name="ChatBox" HorizontalAlignment="Left" Height="212" Margin="118,30,0,0" VerticalAlignment="Top"
+                 Width="359" />
+        <TextBox x:Name="MessageInputBox" TextWrapping="Wrap" Text="TextBox" Margin="34,261,129,10" />
+        <Button x:Name="SendBtn" Content="Send" HorizontalAlignment="Left" Margin="400,261,0,0" VerticalAlignment="Top"
                 Width="89" Height="23" />
+        <ListBox x:Name="Members" HorizontalAlignment="Left" Height="212" Margin="27,30,0,0" VerticalAlignment="Top"
+            Width="91" />
 
     </Grid>
 </Window>
