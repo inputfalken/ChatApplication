@@ -12,6 +12,7 @@ using Protocol;
 namespace Server {
     public static class ChatServer {
         private static readonly Dictionary<string, TcpClient> UserNameToClient = new Dictionary<string, TcpClient>();
+        private const string Server = "Server";
 
         public static Task StartAsync(string address, int port) {
             var listener = new TcpListener(IPAddress.Parse(address), port);
@@ -22,7 +23,7 @@ namespace Server {
         private static async Task HandleClient(TcpClient client) {
             var clientStream = client.GetStream();
             var welcomeMessageSent = MessageClientAsync(
-                JAction.Message("Welcome please enter your name", "Server").ToString(),
+                JAction.Message("Welcome please enter your name", Server).ToString(),
                 clientStream
             );
             ClientConnects?.Invoke("Client connected");
@@ -37,7 +38,7 @@ namespace Server {
             //Send back message to approve registration
             await MessageClientAsync(JAction.StatusSucess().ToString(), userName);
             var writeMessageAsync = MessageClientAsync(
-                JAction.Message($"You have been sucessfully registered with the name: {maybeName}", "Server")
+                JAction.Message($"You have been sucessfully registered with the name: {maybeName}", Server)
                     .ToString(),
                 clientStream
             );
