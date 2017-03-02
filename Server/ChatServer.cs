@@ -45,17 +45,6 @@ namespace Server {
                     .ContinueWith(chastSession => DisconnectClientAsync(userName)));
         }
 
-        private static Maybe<string> Command(string command, string userName) {
-            switch (command) {
-                case "-members":
-                    return UserNameToClient.Select(pair => pair.Key).Aggregate((s, s1) => $"{s}\n{s1}").ToMaybe();
-                case "-whoami":
-                    return userName.ToMaybe();
-                default:
-                    return Maybe<string>.Nothing;
-            }
-        }
-
         private static async Task MessageOtherClientsAsync(string message, string userName) {
             var clientsMessaged = UserNameToClient
                 .Where(pair => !pair.Key.Equals(userName))
@@ -72,18 +61,9 @@ namespace Server {
                 while (connected)
                     connected = (await streamReader.ReadLineAsync())
                         .ToMaybe()
-                        .Do(message => ParseMessage(message, userName))
+                        .Do(async line => await MessageOtherClientsAsync($"{Message(line, userName)}", userName))
                         .HasValue;
             }
-        }
-
-        private static void ParseMessage(string line, string userName) {
-            Command(line, userName)
-                .Match(
-                    async cmdResponse => await MessageClientAsync(cmdResponse, userName),
-                    async () =>
-                        await MessageOtherClientsAsync($"{Message(line, userName)}", userName)
-                );
         }
 
         private static async Task DisconnectClientAsync(string userName) {
