@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -22,7 +23,7 @@ namespace Client {
         public async Task Connect() => await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
 
         public async Task<string> ReadMessage() {
-            var message = JAction.ParseToMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
+            var message = JAction.ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
             return $"{message.Sender}: {message.Result}";
         }
 
@@ -32,11 +33,12 @@ namespace Client {
         }
 
         public async Task<bool> Register(string userName) {
-            await SendMessage(JAction.MemberJoins(userName).ToString());
-            var toJAction = JAction.ParseToJAction(await new StreamReader(_client.GetStream()).ReadLineAsync());
-            if (toJAction.Action != JAction.StatusAction)
-                throw new IOException($"Expected Action :{JAction.StatusAction}, was: {toJAction.Action}");
-            return toJAction.Result == JAction.Success;
+            await SendMessage(JAction.MemberJoins(userName));
+            var parseMessage = JAction.ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
+            var status = JAction.ParseJAction(parseMessage.Result);
+            if (status.Action == JAction.StatusAction) return status.Result == JAction.Success;
+            throw new IOException(
+                $"Expected Action: {JAction.StatusAction}, {parseMessage.Sender} sent: {status.Action}");
         }
 
         public void CloseConnection() {

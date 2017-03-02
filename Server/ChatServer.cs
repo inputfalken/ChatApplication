@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Functional.Maybe;
-using Protocol;
+using static Protocol.JAction;
 
 namespace Server {
     public static class ChatServer {
@@ -23,7 +23,7 @@ namespace Server {
         private static async Task HandleClient(TcpClient client) {
             var clientStream = client.GetStream();
             var welcomeMessageSent = MessageClientAsync(
-                JAction.Message("Welcome please enter your name", Server).ToString(),
+                Message("Welcome please enter your name", Server),
                 clientStream
             );
             ClientConnects?.Invoke("Client connected");
@@ -31,19 +31,18 @@ namespace Server {
             var maybeName = await RegisterUserAsync(client);
             while (!maybeName.HasValue)
                 maybeName = await await
-                    MessageClientAsync(JAction.StatusFail().ToString(), clientStream)
+                    MessageClientAsync(Message(StatusFail(), Server), clientStream)
                         .ContinueWith(t => RegisterUserAsync(client));
             var userName = maybeName.Value;
 
             //Send back message to approve registration
-            await MessageClientAsync(JAction.StatusSucess().ToString(), userName);
+            await MessageClientAsync(Message(StatusSucess(), Server), userName);
             var writeMessageAsync = MessageClientAsync(
-                JAction.Message($"You have been sucessfully registered with the name: {maybeName}", Server)
-                    .ToString(),
+                Message($"You have been sucessfully registered with the name: {maybeName}", Server),
                 clientStream
             );
             var messageClientsExcept = MessageOtherClientsAsync(
-                JAction.MemberJoins(userName).ToString(),
+                MemberJoins(userName),
                 userName
             );
             await writeMessageAsync;
@@ -89,12 +88,12 @@ namespace Server {
                 .Match(
                     async cmdResponse => await MessageClientAsync(cmdResponse, userName),
                     async () =>
-                        await MessageOtherClientsAsync($"{JAction.Message(line, userName)}", userName)
+                        await MessageOtherClientsAsync($"{Message(line, userName)}", userName)
                 );
         }
 
         private static async Task DisconnectClientAsync(string userName) {
-            var message = JAction.MemberDisconnects(userName).ToString();
+            var message = MemberDisconnects(userName);
             UserNameToClient.Remove(userName);
             await AnnounceAsync(message);
             ClientDisconects?.Invoke(message);
@@ -112,9 +111,9 @@ namespace Server {
         // Could use a while loop  instead and force the user to stay
         private static async Task<Maybe<string>> RegisterUserAsync(TcpClient client) {
             var streamReader = new StreamReader(client.GetStream());
-            return JAction.ParseToJAction(await streamReader.ReadLineAsync())
+            return ParseJAction(await streamReader.ReadLineAsync())
                 .ToMaybe()
-                .Where(action => action.Action == JAction.NewMemberAction)
+                .Where(action => action.Action == NewMemberAction)
                 .Where(action => !UserNameToClient.ContainsKey(action.Result))
                 .Do(action => UserNameToClient.Add(action.Result, client))
                 .Select(action => action.Result);
