@@ -120,8 +120,8 @@ namespace Server {
             await stream.WriteAsync(buffer, 0, buffer.Length);
         }
 
-        private static async Task MessageClientAsync(string message, string userName) {
-            var stream = UserNameToClient[userName].GetStream();
+        private static async Task MessageClientAsync(string message, string sender) {
+            var stream = UserNameToClient[sender].GetStream();
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
             await stream.WriteAsync(buffer, 0, buffer.Length);
         }
