@@ -38,6 +38,7 @@ namespace ClientApplication {
         private async Task ListenForMessages() {
             while (true) {
                 var message = await Task.Run(_netusClient.ReadMessage);
+                //TODO Message needs to be handled differently. Message could contain anything from the protocol!
                 AddToChatBox(message);
             }
         }
