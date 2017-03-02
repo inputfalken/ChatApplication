@@ -31,11 +31,11 @@ namespace ClientApplication {
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs) {
-            await ListenForMessages();
+            await ListenAsync();
             //when closing in debug mode you'll get an exception about an disposed networkstream.
         }
 
-        private async Task ListenForMessages() {
+        private async Task ListenAsync() {
             while (true) {
                 var message = await Task.Run(_netusClient.ReadMessage);
                 //TODO Message needs to be handled differently. Message could contain anything from the protocol!
