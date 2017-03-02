@@ -107,10 +107,11 @@ namespace Server {
             var streamReader = new StreamReader(client.GetStream());
             return ParseJAction(await streamReader.ReadLineAsync())
                 .ToMaybe()
-                .Where(action => action.Action == NewMemberAction)
-                .Where(action => !UserNameToClient.ContainsKey(action.Result))
-                .Do(action => UserNameToClient.Add(action.Result, client))
-                .Select(action => action.Result);
+                .Where(action => action.Action == NewMemberAction) // Check that the client sends the right action.
+                .Where(action => !UserNameToClient.ContainsKey(action.Result)) // Check that the username is not taken.
+                .Where(action => action.Result != Server) // Check that username is not the the reserved name Server
+                .Do(action => UserNameToClient.Add(action.Result, client)) // Add the user to the register
+                .Select(action => action.Result); // Select the successfull username
         }
 
 
