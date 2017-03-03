@@ -31,12 +31,12 @@ namespace Server {
             ).ContinueWith(t => RegisterUserAsync(client));
             while (!userRegistered.HasValue)
                 userRegistered = await await
-                    MessageClientAsync(Message(StatusFail(), Server), clientStream)
+                    MessageClientAsync(StatusFail(), clientStream)
                         .ContinueWith(t => RegisterUserAsync(client));
             var userName = userRegistered.Value;
 
             //Send back message to approve registration
-            await await MessageClientAsync(Message(StatusSucess(), Server), userName)
+            await await MessageClientAsync(StatusSucess(), userName)
                 .ContinueWith(msgClient => MessageOtherClientsAsync(MemberJoins(userName), userName))
                 .ContinueWith(msgOtherClient => ChatSessionAsync(userName));
             await DisconnectClientAsync(userName);
