@@ -14,11 +14,17 @@ namespace ClientApplication {
         public MainWindow(ChatClient netusClient, string userName) {
             InitializeComponent();
             _netusClient = netusClient;
+            _netusClient.MessageRecieved += NetusClientOnMessageRecieved;
+            _netusClient.NewMember += NetusClientOnNewMember;
             _userName = userName;
             SendBtn.Click += SendBtnOnClick;
             Loaded += OnLoaded;
             Closed += OnClosed;
         }
+
+        private async void NetusClientOnNewMember(string s) => await Dispatcher.InvokeAsync(() => Members.Items.Add(s));
+
+        private async void NetusClientOnMessageRecieved(string s) => await Dispatcher.InvokeAsync(() => AddToChatBox(s));
 
         private void OnClosed(object sender, EventArgs eventArgs) {
             _netusClient.CloseConnection();
@@ -29,7 +35,7 @@ namespace ClientApplication {
             var messageBoxText = MessageInputBox.Text;
             //Server needs to send back the message with a timestamp for when message was recieved.
             await _netusClient.SendMessage(messageBoxText, _userName);
-            AddToChatBox(messageBoxText);
+            AddToChatBox($"{_userName}: {messageBoxText}");
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs) {
@@ -39,9 +45,8 @@ namespace ClientApplication {
 
         private async Task ListenAsync() {
             while (true) {
-                var message = await Task.Run(_netusClient.ReadMessage);
+                await Task.Run(_netusClient.Listen);
                 //TODO Message needs to be handled differently. Message could contain anything from the protocol!
-                AddToChatBox(message);
             }
         }
 

@@ -31,6 +31,24 @@ namespace Client {
             await MessageAsync(JAction.Message(message, userName));
         }
 
+        public event Action<string> MessageRecieved;
+        public event Action<string> NewMember;
+
+        public async Task Listen() {
+            var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
+            var action = JAction.ParseJAction(data);
+            if (action.Action == JAction.NewMemberAction) {
+                NewMember?.Invoke(action.Result);
+            }
+            else if (action.Action == JAction.NewMemberAction) {
+                NewMember?.Invoke(action.Result);
+            }
+            else if (action.Action == JAction.MessageAction) {
+                var message = JAction.ParseMessage(data);
+                MessageRecieved?.Invoke($"{message.Sender}: {message.Result}");
+            }
+        }
+
         private async Task MessageAsync(string message) {
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
             await _client.GetStream().WriteAsync(buffer, 0, buffer.Length);
