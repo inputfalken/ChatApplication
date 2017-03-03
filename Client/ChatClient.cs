@@ -38,11 +38,16 @@ namespace Client {
 
         public async Task<bool> Register(string userName) {
             await MessageAsync(JAction.MemberJoins(userName));
-            var parseMessage = JAction.ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
-            var status = JAction.ParseJAction(parseMessage.Result);
-            if (status.Action == JAction.StatusAction) return status.Result == JAction.Success;
-            throw new IOException(
-                $"Expected Action: {JAction.StatusAction}, {parseMessage.Sender} sent: {status.Action}");
+            var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
+            var action = JAction.ParseJAction(data);
+            if (action.Action == JAction.MessageAction) {
+                var parseMessage = JAction.ParseMessage(data);
+                var status = JAction.ParseJAction(parseMessage.Result);
+                if (status.Action == JAction.StatusAction) return status.Result == JAction.Success;
+                throw new IOException(
+                    $"Expected Action: {JAction.StatusAction}, {parseMessage.Sender} sent: {status.Action}");
+            }
+            throw new IOException($"Expected Action {JAction.MessageAction}, was: {action.Action}");
         }
 
         public void CloseConnection() {
