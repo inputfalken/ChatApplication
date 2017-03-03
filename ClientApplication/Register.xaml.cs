@@ -33,7 +33,7 @@ namespace ClientApplication {
                 Close();
             }
             else {
-                MessageBox.Show($"Could register with {UserNameBox.Text}, try with a different name");
+                Label.Content = $"Could register with {UserNameBox.Text}, try with a different name";
             }
         }
     }
