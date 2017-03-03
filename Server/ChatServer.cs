@@ -90,8 +90,6 @@ namespace Server {
         public static event Action<string> ClientConnects;
         public static event Action<string> ClientDisconects;
 
-        // TODO Return maybe string which HandleClient maybe handle if the client succeded
-        // Could use a while loop  instead and force the user to stay
         private static async Task<Maybe<string>> RegisterUserAsync(TcpClient client) {
             var streamReader = new StreamReader(client.GetStream());
             return ParseJAction(await streamReader.ReadLineAsync())
