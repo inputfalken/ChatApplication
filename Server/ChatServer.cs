@@ -37,14 +37,9 @@ namespace Server {
 
             //Send back message to approve registration
             await await MessageClientAsync(Message(StatusSucess(), Server), userName)
-                .ContinueWith(successRegister => MessageClientAsync(
-                        Message($"You have been sucessfully registered with the name: {userName}", Server),
-                        userName
-                    )
-                )
                 .ContinueWith(msgClient => MessageOtherClientsAsync(MemberJoins(userName), userName))
-                .ContinueWith(msgOtherClient => ChatSessionAsync(userName)
-                    .ContinueWith(session => DisconnectClientAsync(userName)));
+                .ContinueWith(msgOtherClient => ChatSessionAsync(userName));
+            await DisconnectClientAsync(userName);
         }
 
         private static async Task MessageOtherClientsAsync(string message, string userName) {
