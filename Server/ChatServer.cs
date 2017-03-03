@@ -44,7 +44,7 @@ namespace Server {
                 )
                 .ContinueWith(msgClient => MessageOtherClientsAsync(MemberJoins(userName), userName))
                 .ContinueWith(msgOtherClient => ChatSessionAsync(userName)
-                    .ContinueWith(chastSession => DisconnectClientAsync(userName)));
+                    .ContinueWith(session => DisconnectClientAsync(userName)));
         }
 
         private static async Task MessageOtherClientsAsync(string message, string userName) {
