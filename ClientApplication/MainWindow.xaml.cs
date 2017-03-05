@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using Client;
@@ -58,10 +57,7 @@ namespace ClientApplication {
         }
 
         private async Task ListenAsync() {
-            while (true) {
-                await Task.Run(_netusClient.Listen);
-                //TODO Message needs to be handled differently. Message could contain anything from the protocol!
-            }
+            while (true) await Task.Run(_netusClient.Listen);
         }
 
         private void AddToChatBox(string message) => ChatBox.Items.Add(message);

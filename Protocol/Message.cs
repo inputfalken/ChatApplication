@@ -24,14 +24,14 @@ namespace Protocol {
         public string JsonObject { get; }
 
         /// <summary>
-        /// Parses the message into it's basic form.
+        ///     Parses the message into it's basic form.
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
         public static Message ParseMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
 
         /// <summary>
-        /// Creates an Message with it's data with as json.
+        ///     Creates an Message with it's data with as json.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="action"></param>
@@ -41,7 +41,7 @@ namespace Protocol {
             => new Message(action, JsonConvert.SerializeObject(result)).ToString();
 
         /// <summary>
-        /// Parses the json supplied to it's object.
+        ///     Parses the json supplied to it's object.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="json"></param>
@@ -52,12 +52,12 @@ namespace Protocol {
     }
 
     public class MemberMessage {
-        public string UserName { get; }
-        public string Message { get; }
-
         public MemberMessage(string userName, string message) {
             UserName = userName;
             Message = message;
         }
+
+        public string UserName { get; }
+        public string Message { get; }
     }
 }

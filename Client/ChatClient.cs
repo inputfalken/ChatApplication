@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -47,9 +45,7 @@ namespace Client {
                     NewMember?.Invoke(Message.Parse<string>(message.JsonObject));
                     break;
                 case Action.SendMembers:
-                    FetchMembers?.Invoke(Message
-                        .Parse<IReadOnlyList<string>>(message.JsonObject)
-                    );
+                    FetchMembers?.Invoke(Message.Parse<IReadOnlyList<string>>(message.JsonObject));
                     break;
                 case Action.MemberMessage:
                     var memberMessage = Message.Parse<MemberMessage>(message.JsonObject);

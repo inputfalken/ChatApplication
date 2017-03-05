@@ -12,7 +12,7 @@
         <Button x:Name="SendBtn" Content="Send" HorizontalAlignment="Left" Margin="400,261,0,0" VerticalAlignment="Top"
                 Width="89" Height="23" />
         <ListBox x:Name="Members" HorizontalAlignment="Left" Height="212" Margin="27,30,0,0" VerticalAlignment="Top"
-            Width="91" />
+                 Width="91" />
 
     </Grid>
 </Window>
