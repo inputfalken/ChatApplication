@@ -22,23 +22,19 @@ namespace Server {
             while (true) HandleClient(listener.AcceptTcpClient());
         }
 
+        private static async Task<Maybe<string>> UserRegistration(TcpClient client) {
+            var maybe = await RegisterUserAsync(client);
+            await MessageClientAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
+            return maybe.HasValue ? maybe : await UserRegistration(client);
+        }
+
         private static async Task HandleClient(TcpClient client) {
             ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
-            var userRegistered = await await MessageClientAsync(
-                Create(Action.Message, "Welcome please enter your name"),
-                clientStream
-            ).ContinueWith(t => RegisterUserAsync(client));
-            while (!userRegistered.HasValue)
-                userRegistered = await await
-                    MessageClientAsync(Create(Action.Status, false), clientStream)
-                        .ContinueWith(t => RegisterUserAsync(client));
-            var userName = userRegistered.Value;
-
+            await MessageClientAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
+            var userName = (await UserRegistration(client)).Value;
             //Send back message to approve registration
-            await await MessageClientAsync(Create(Action.Status, true), userName)
-                .ContinueWith(
-                    task => MessageClientAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName))
+            await await MessageClientAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName)
                 .ContinueWith(msgClient => MessageOtherClientsAsync(Create(Action.MemberJoin, userName), userName))
                 .ContinueWith(msgOtherClient => ChatSessionAsync(userName));
             await DisconnectClientAsync(userName);
