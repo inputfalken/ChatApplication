@@ -9,7 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Functional.Maybe;
 using Protocol;
-using static Protocol.JAction;
+using static Protocol.Message;
+using Action = Protocol.Action;
 
 namespace Server {
     public static class ChatServer {
@@ -26,19 +27,20 @@ namespace Server {
             ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
             var userRegistered = await await MessageClientAsync(
-                Message("Welcome please enter your name", Server),
+                Create(Action.Message, "Welcome please enter your name"),
                 clientStream
             ).ContinueWith(t => RegisterUserAsync(client));
             while (!userRegistered.HasValue)
                 userRegistered = await await
-                    MessageClientAsync(StatusFail(), clientStream)
+                    MessageClientAsync(Create(Action.Status, false), clientStream)
                         .ContinueWith(t => RegisterUserAsync(client));
             var userName = userRegistered.Value;
 
             //Send back message to approve registration
-            await await MessageClientAsync(StatusSucess(), userName)
-                .ContinueWith(task => MessageClientAsync(Create(MembersAction, UserNameToClient.Keys.ToArray()), userName))
-                .ContinueWith(msgClient => MessageOtherClientsAsync(MemberJoins(userName), userName))
+            await await MessageClientAsync(Create(Action.Status, true), userName)
+                .ContinueWith(
+                    task => MessageClientAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName))
+                .ContinueWith(msgClient => MessageOtherClientsAsync(Create(Action.MemberJoin, userName), userName))
                 .ContinueWith(msgOtherClient => ChatSessionAsync(userName));
             await DisconnectClientAsync(userName);
         }
@@ -65,14 +67,16 @@ namespace Server {
             }
         }
 
-        private static async Task HandleAction(JAction jAction, string userName) {
+        private static async Task HandleAction(Message message, string userName) {
             // This is where the client can create requests about specifik data.
-            if (jAction.Action == MessageAction)
-                await MessageOtherClientsAsync($"{Message(jAction.Result, userName)}", userName);
+            if (message.Action == Action.MemberMessage) {
+                var memberMessage = Parse<MemberMessage>(message.JsonObject);
+                await MessageOtherClientsAsync(Create(Action.MemberMessage, memberMessage), userName);
+            }
         }
 
         private static async Task DisconnectClientAsync(string userName) {
-            var message = MemberDisconnects(userName);
+            var message = Create(Action.MemberDisconnect, userName);
             UserNameToClient.Remove(userName);
             await AnnounceAsync(message);
             ClientDisconects?.Invoke(message);
@@ -90,11 +94,11 @@ namespace Server {
             var streamReader = new StreamReader(client.GetStream());
             return ParseJAction(await streamReader.ReadLineAsync())
                 .ToMaybe()
-                .Where(action => action.Action == NewMemberAction) // Check that the client sends the right action.
-                .Where(action => !UserNameToClient.ContainsKey(action.Result)) // Check that the username is not taken.
-                .Where(action => action.Result != Server) // Check that username is not the the reserved name Server
-                .Do(action => UserNameToClient.Add(action.Result, client)) // Add the user to the register
-                .Select(action => action.Result); // Select the successfull username
+                .Where(message => message.Action == Action.MemberJoin) // Check that the client sends the right action.
+                .Select(message => Parse<string>(message.JsonObject))
+                .Where(userName => !UserNameToClient.ContainsKey(userName)) // Check that the username is not taken.
+                .Where(userName => userName != Server) // Check that username is not the the reserved name Server
+                .Do(userName => UserNameToClient.Add(userName, client)); // Add the user to the register
         }
 
 

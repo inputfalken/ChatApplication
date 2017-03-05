@@ -19,17 +19,22 @@ namespace ClientApplication {
             _netusClient.MessageRecieved += NetusClientOnMessageRecieved;
             _netusClient.NewMember += NetusClientOnNewMember;
             _netusClient.FetchMembers += NetusClientOnFetchMembers;
+            _netusClient.MemberDisconnect += NetusClientOnMemberDisconnect;
             _userName = userName;
             SendBtn.Click += SendBtnOnClick;
             Loaded += OnLoaded;
             Closed += OnClosed;
         }
 
+
         private async void NetusClientOnFetchMembers(IReadOnlyList<string> readOnlyList) {
             await Dispatcher.InvokeAsync(() => {
                 foreach (var username in readOnlyList) Members.Items.Add(username);
             });
         }
+
+        private async void NetusClientOnMemberDisconnect(string s)
+            => await Dispatcher.InvokeAsync(() => Members.Items.Remove(s));
 
         private async void NetusClientOnNewMember(string s) => await Dispatcher.InvokeAsync(() => Members.Items.Add(s));
 

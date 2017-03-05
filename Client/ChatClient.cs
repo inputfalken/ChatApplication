@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Protocol;
+using Action = Protocol.Action;
 
 namespace Client {
     public class ChatClient {
@@ -24,30 +26,44 @@ namespace Client {
         public async Task Connect() => await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
 
         public async Task<string> ReadMessage() {
-            var message = JAction.ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
-            return $"{message.Sender}: {message.Result}";
+            var message = Message.ParseJAction(await new StreamReader(_client.GetStream()).ReadLineAsync());
+            return Message.Parse<string>(message.JsonObject);
         }
 
         public async Task SendMessage(string message, string userName) {
-            await MessageAsync(JAction.Message(message, userName));
+            await MessageAsync(Message.Create(Action.MemberMessage, new MemberMessage(userName, message)));
         }
 
         public event Action<string> MessageRecieved;
         public event Action<string> NewMember;
+        public event Action<string> MemberDisconnect;
         public event Action<IReadOnlyList<string>> FetchMembers;
 
         public async Task Listen() {
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var action = JAction.ParseJAction(data);
-            if (action.Action == JAction.NewMemberAction) {
-                NewMember?.Invoke(action.Result);
-            }
-            else if (action.Action == JAction.MembersAction) {
-                FetchMembers?.Invoke(JAction.Parse<IReadOnlyList<string>>(action.Result));
-            }
-            else if (action.Action == JAction.MessageAction) {
-                var message = JAction.ParseMessage(data);
-                MessageRecieved?.Invoke($"{message.Sender}: {message.Result}");
+            var message = Message.ParseJAction(data);
+            switch (message.Action) {
+                case Action.MemberJoin:
+                    NewMember?.Invoke(Message.Parse<string>(message.JsonObject));
+                    break;
+                case Action.SendMembers:
+                    FetchMembers?.Invoke(Message
+                        .Parse<IReadOnlyList<string>>(message.JsonObject)
+                    );
+                    break;
+                case Action.MemberMessage:
+                    var memberMessage = Message.Parse<MemberMessage>(message.JsonObject);
+                    MessageRecieved?.Invoke($"{memberMessage.UserName}: {memberMessage.Message}");
+                    break;
+                case Action.Message:
+                    break;
+                case Action.Status:
+                    break;
+                case Action.MemberDisconnect:
+                    MemberDisconnect?.Invoke(Message.Parse<string>(message.JsonObject));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -57,11 +73,11 @@ namespace Client {
         }
 
         public async Task<bool> Register(string userName) {
-            await MessageAsync(JAction.MemberJoins(userName));
+            await MessageAsync(Message.Create(Action.MemberJoin, userName));
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var action = JAction.ParseJAction(data);
-            if (action.Action == JAction.StatusAction) return action.Result == JAction.Success;
-            throw new IOException($"Expected Action: {JAction.StatusAction}, Was:{action.Action}");
+            var action = Message.ParseJAction(data);
+            if (action.Action == Action.Status) return Message.Parse<bool>(action.JsonObject);
+            throw new IOException($"Expected: {Action.Status}, Was:{action.Action}");
         }
 
         public void CloseConnection() {
