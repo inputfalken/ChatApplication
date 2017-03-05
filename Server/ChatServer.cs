@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Functional.Maybe;
@@ -34,9 +35,9 @@ namespace Server {
             await MessageClientAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
             var userName = await RegisterUserNameAsync(client);
             //Send back message to approve registration
-            await await MessageClientAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName)
-                .ContinueWith(msgClient => MessageOtherClientsAsync(Create(Action.MemberJoin, userName), userName))
-                .ContinueWith(msgOtherClient => ChatSessionAsync(userName));
+            await MessageClientAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName);
+            await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), userName);
+            await ChatSessionAsync(userName);
             await DisconnectClientAsync(userName);
         }
 
