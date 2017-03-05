@@ -61,7 +61,7 @@ namespace Server {
                 while (connected)
                     connected = (await streamReader.ReadLineAsync())
                         .ToMaybe()
-                        .Select(ParseJAction)
+                        .Select(ParseMessage)
                         .Do(async action => await HandleAction(action, userName))
                         .HasValue;
             }
@@ -92,7 +92,7 @@ namespace Server {
 
         private static async Task<Maybe<string>> RegisterUserAsync(TcpClient client) {
             var streamReader = new StreamReader(client.GetStream());
-            return ParseJAction(await streamReader.ReadLineAsync())
+            return ParseMessage(await streamReader.ReadLineAsync())
                 .ToMaybe()
                 .Where(message => message.Action == Action.MemberJoin) // Check that the client sends the right action.
                 .Select(message => Parse<string>(message.JsonObject))

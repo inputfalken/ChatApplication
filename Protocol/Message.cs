@@ -23,7 +23,7 @@ namespace Protocol {
         [JsonProperty("result")]
         public string JsonObject { get; }
 
-        public static Message ParseJAction(string json) => JsonConvert.DeserializeObject<Message>(json);
+        public static Message ParseMessage(string json) => JsonConvert.DeserializeObject<Message>(json);
 
         public static string Create<T>(Action action, T result)
             => new Message(action, JsonConvert.SerializeObject(result)).ToString();

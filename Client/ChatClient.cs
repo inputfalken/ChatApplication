@@ -26,7 +26,7 @@ namespace Client {
         public async Task Connect() => await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
 
         public async Task<string> ReadMessage() {
-            var message = Message.ParseJAction(await new StreamReader(_client.GetStream()).ReadLineAsync());
+            var message = Message.ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
             return Message.Parse<string>(message.JsonObject);
         }
 
@@ -41,7 +41,7 @@ namespace Client {
 
         public async Task Listen() {
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var message = Message.ParseJAction(data);
+            var message = Message.ParseMessage(data);
             switch (message.Action) {
                 case Action.MemberJoin:
                     NewMember?.Invoke(Message.Parse<string>(message.JsonObject));
@@ -75,7 +75,7 @@ namespace Client {
         public async Task<bool> Register(string userName) {
             await MessageAsync(Message.Create(Action.MemberJoin, userName));
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var action = Message.ParseJAction(data);
+            var action = Message.ParseMessage(data);
             if (action.Action == Action.Status) return Message.Parse<bool>(action.JsonObject);
             throw new IOException($"Expected: {Action.Status}, Was:{action.Action}");
         }
