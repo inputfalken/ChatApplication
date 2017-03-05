@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using Client;
@@ -16,10 +18,17 @@ namespace ClientApplication {
             _netusClient = netusClient;
             _netusClient.MessageRecieved += NetusClientOnMessageRecieved;
             _netusClient.NewMember += NetusClientOnNewMember;
+            _netusClient.FetchMembers += NetusClientOnFetchMembers;
             _userName = userName;
             SendBtn.Click += SendBtnOnClick;
             Loaded += OnLoaded;
             Closed += OnClosed;
+        }
+
+        private async void NetusClientOnFetchMembers(IReadOnlyList<string> readOnlyList) {
+            await Dispatcher.InvokeAsync(() => {
+                foreach (var username in readOnlyList) Members.Items.Add(username);
+            });
         }
 
         private async void NetusClientOnNewMember(string s) => await Dispatcher.InvokeAsync(() => Members.Items.Add(s));

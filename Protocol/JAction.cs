@@ -11,6 +11,7 @@ namespace Protocol {
         public const string StatusAction = "validate";
         public const string Success = "sucess";
         public const string Fail = "fail";
+        public const string MembersAction = "members";
 
         [JsonConstructor]
         protected JAction(string action, string result) {
@@ -32,6 +33,10 @@ namespace Protocol {
 
         public static JAction ParseJAction(string json) => JsonConvert.DeserializeObject<JAction>(json);
 
+        public static string Create<T>(string action, T result)
+            => new JAction(action, JsonConvert.SerializeObject(result)).ToString();
+
+        public static T Parse<T>(string json) => JsonConvert.DeserializeObject<T>(json);
 
         public static string StatusFail() => new JAction(StatusAction, Fail).ToString();
 

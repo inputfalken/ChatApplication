@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -33,6 +34,7 @@ namespace Client {
 
         public event Action<string> MessageRecieved;
         public event Action<string> NewMember;
+        public event Action<IReadOnlyList<string>> FetchMembers;
 
         public async Task Listen() {
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
@@ -40,8 +42,8 @@ namespace Client {
             if (action.Action == JAction.NewMemberAction) {
                 NewMember?.Invoke(action.Result);
             }
-            else if (action.Action == JAction.NewMemberAction) {
-                NewMember?.Invoke(action.Result);
+            else if (action.Action == JAction.MembersAction) {
+                FetchMembers?.Invoke(JAction.Parse<IReadOnlyList<string>>(action.Result));
             }
             else if (action.Action == JAction.MessageAction) {
                 var message = JAction.ParseMessage(data);
