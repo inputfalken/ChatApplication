@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Protocol;
+using static Protocol.Message;
 using Action = Protocol.Action;
 
 namespace Client {
@@ -24,13 +25,12 @@ namespace Client {
         public async Task Connect() => await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
 
         public async Task<string> ReadMessage() {
-            var message = Message.ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
-            return Message.Parse<string>(message.JsonObject);
+            var message = ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
+            return Parse<string>(message.JsonObject);
         }
 
-        public async Task SendMessage(string message, string userName) {
-            await MessageAsync(Message.Create(Action.MemberMessage, new MemberMessage(userName, message)));
-        }
+        public async Task SendMessage(string message, string userName)
+            => await MessageAsync(Create(Action.MemberMessage, new MemberMessage(userName, message)));
 
         public event Action<string> MessageRecieved;
         public event Action<string> NewMember;
@@ -39,7 +39,7 @@ namespace Client {
 
         public async Task Listen() {
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var message = Message.ParseMessage(data);
+            var message = ParseMessage(data);
             switch (message.Action) {
                 case Action.MemberJoin:
                     NewMember?.Invoke(message.Parse<string>());
@@ -69,10 +69,10 @@ namespace Client {
         }
 
         public async Task<bool> Register(string userName) {
-            await MessageAsync(Message.Create(Action.MemberJoin, userName));
+            await MessageAsync(Create(Action.MemberJoin, userName));
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var action = Message.ParseMessage(data);
-            if (action.Action == Action.Status) return Message.Parse<bool>(action.JsonObject);
+            var action = ParseMessage(data);
+            if (action.Action == Action.Status) return Parse<bool>(action.JsonObject);
             throw new IOException($"Expected: {Action.Status}, Was:{action.Action}");
         }
 
