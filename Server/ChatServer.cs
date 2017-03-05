@@ -22,17 +22,17 @@ namespace Server {
             while (true) HandleClient(listener.AcceptTcpClient());
         }
 
-        private static async Task<Maybe<string>> UserRegistration(TcpClient client) {
+        private static async Task<string> RegisterUserNameAsync(TcpClient client) {
             var maybe = await RegisterUserAsync(client);
             await MessageClientAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
-            return maybe.HasValue ? maybe : await UserRegistration(client);
+            return maybe.HasValue ? maybe.Value : await RegisterUserNameAsync(client);
         }
 
         private static async Task HandleClient(TcpClient client) {
             ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
             await MessageClientAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
-            var userName = (await UserRegistration(client)).Value;
+            var userName = await RegisterUserNameAsync(client);
             //Send back message to approve registration
             await await MessageClientAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName)
                 .ContinueWith(msgClient => MessageOtherClientsAsync(Create(Action.MemberJoin, userName), userName))
