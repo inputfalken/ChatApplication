@@ -57,12 +57,12 @@ namespace Server {
                     connected = (await streamReader.ReadLineAsync())
                         .ToMaybe()
                         .Select(ParseMessage)
-                        .Do(async action => await HandleAction(action, userName))
+                        .Do(async action => await HandleMessage(action, userName))
                         .HasValue;
             }
         }
 
-        private static async Task HandleAction(Message message, string userName) {
+        private static async Task HandleMessage(Message message, string userName) {
             // This is where the client can create requests about specifik data.
             if (message.Action == Action.MemberMessage) {
                 var memberMessage = message.Parse<MemberMessage>();
