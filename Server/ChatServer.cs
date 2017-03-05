@@ -34,7 +34,6 @@ namespace Server {
             var clientStream = client.GetStream();
             await MessageClientAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
             var userName = await RegisterUserNameAsync(client);
-            //Send back message to approve registration
             await MessageClientAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), userName);
             await ChatSessionAsync(userName);
