@@ -69,7 +69,7 @@ namespace Server {
         private static async Task HandleAction(Message message, string userName) {
             // This is where the client can create requests about specifik data.
             if (message.Action == Action.MemberMessage) {
-                var memberMessage = Parse<MemberMessage>(message.JsonObject);
+                var memberMessage = message.Parse<MemberMessage>();
                 await MessageOtherClientsAsync(Create(Action.MemberMessage, memberMessage), userName);
             }
         }

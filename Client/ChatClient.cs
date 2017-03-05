@@ -42,13 +42,13 @@ namespace Client {
             var message = Message.ParseMessage(data);
             switch (message.Action) {
                 case Action.MemberJoin:
-                    NewMember?.Invoke(Message.Parse<string>(message.JsonObject));
+                    NewMember?.Invoke(message.Parse<string>());
                     break;
                 case Action.SendMembers:
-                    FetchMembers?.Invoke(Message.Parse<IReadOnlyList<string>>(message.JsonObject));
+                    FetchMembers?.Invoke(message.Parse<IReadOnlyList<string>>());
                     break;
                 case Action.MemberMessage:
-                    var memberMessage = Message.Parse<MemberMessage>(message.JsonObject);
+                    var memberMessage = message.Parse<MemberMessage>();
                     MessageRecieved?.Invoke($"{memberMessage.UserName}: {memberMessage.Message}");
                     break;
                 case Action.Message:
@@ -56,7 +56,7 @@ namespace Client {
                 case Action.Status:
                     break;
                 case Action.MemberDisconnect:
-                    MemberDisconnect?.Invoke(Message.Parse<string>(message.JsonObject));
+                    MemberDisconnect?.Invoke(message.Parse<string>());
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

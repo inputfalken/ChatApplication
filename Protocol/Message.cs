@@ -48,6 +48,8 @@ namespace Protocol {
         /// <returns></returns>
         public static T Parse<T>(string json) => JsonConvert.DeserializeObject<T>(json);
 
+        public T Parse<T>() => JsonConvert.DeserializeObject<T>(JsonObject);
+
         public override string ToString() => JsonConvert.SerializeObject(this);
     }
 
