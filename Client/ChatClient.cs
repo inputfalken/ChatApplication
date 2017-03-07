@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -38,28 +39,31 @@ namespace Client {
         public event Action<IReadOnlyList<string>> FetchMembers;
 
         public async Task Listen() {
-            var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var message = ParseMessage(data);
-            switch (message.Action) {
-                case Action.MemberJoin:
-                    NewMember?.Invoke(message.Parse<string>());
-                    break;
-                case Action.SendMembers:
-                    FetchMembers?.Invoke(message.Parse<IReadOnlyList<string>>());
-                    break;
-                case Action.MemberMessage:
-                    var memberMessage = message.Parse<MemberMessage>();
-                    MessageRecieved?.Invoke($"{memberMessage.UserName}: {memberMessage.Message}");
-                    break;
-                case Action.Message:
-                    break;
-                case Action.Status:
-                    break;
-                case Action.MemberDisconnect:
-                    MemberDisconnect?.Invoke(message.Parse<string>());
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+            using (var reader = new StreamReader(_client.GetStream())) {
+                while (true) {
+                    var message = await ReadMessageAsync(reader);
+                    switch (message.Action) {
+                        case Action.MemberJoin:
+                            NewMember?.Invoke(message.Parse<string>());
+                            break;
+                        case Action.SendMembers:
+                            FetchMembers?.Invoke(message.Parse<IReadOnlyList<string>>());
+                            break;
+                        case Action.MemberMessage:
+                            var memberMessage = message.Parse<MemberMessage>();
+                            MessageRecieved?.Invoke($"{memberMessage.UserName}: {memberMessage.Message}");
+                            break;
+                        case Action.Message:
+                            break;
+                        case Action.Status:
+                            break;
+                        case Action.MemberDisconnect:
+                            MemberDisconnect?.Invoke(message.Parse<string>());
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
             }
         }
 

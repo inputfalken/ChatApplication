@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Data;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Protocol {
     public enum Action {
@@ -51,6 +56,22 @@ namespace Protocol {
         public T Parse<T>() => JsonConvert.DeserializeObject<T>(JsonObject);
 
         public override string ToString() => JsonConvert.SerializeObject(this);
+
+        public static async Task WriteToStreamAsync(string message, Stream stream) {
+            var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
+            await stream.WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        /// <summary>
+        /// Returns a message when the client sends a message.
+        /// If client disconnects null is returned.
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        public static async Task<Message> ReadMessageAsync(StreamReader reader) {
+            var json = await reader.ReadLineAsync();
+            return json == null ? null : ParseMessage(json);
+        }
     }
 
     public class MemberMessage {

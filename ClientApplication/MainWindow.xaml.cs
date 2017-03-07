@@ -51,14 +51,8 @@ namespace ClientApplication {
             AddToChatBox($"{_userName}: {messageBoxText}");
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs) {
-            await ListenAsync();
-            //when closing in debug mode you'll get an exception about an disposed networkstream.
-        }
+        private void OnLoaded(object sender, RoutedEventArgs routedEventArgs) => Task.Run(_netusClient.Listen);
 
-        private async Task ListenAsync() {
-            while (true) await Task.Run(_netusClient.Listen);
-        }
 
         private void AddToChatBox(string message) => ChatBox.Items.Add(message);
     }
