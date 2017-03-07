@@ -96,6 +96,7 @@ namespace Server {
         }
 
 
+        // TODO Replace this method with the protocol WriteMethod.
         private static async Task MessageUserAsync(string message, string sender) {
             var stream = UserNameToClient[sender].GetStream();
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);

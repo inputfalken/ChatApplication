@@ -56,7 +56,7 @@ namespace Protocol {
         public T Parse<T>() => JsonConvert.DeserializeObject<T>(JsonObject);
 
         public override string ToString() => JsonConvert.SerializeObject(this);
-
+        // TODO change the string argument to Message
         public static async Task WriteToStreamAsync(string message, Stream stream) {
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
             await stream.WriteAsync(buffer, 0, buffer.Length);
