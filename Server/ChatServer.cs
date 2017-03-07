@@ -25,16 +25,16 @@ namespace Server {
 
         private static async Task<string> RegisterUserAsync(TcpClient client) {
             var maybe = await TryRegisterUserAsync(client);
-            await WriteToStreamAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
+            await SendMessageAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
             return maybe.HasValue ? maybe.Value : await RegisterUserAsync(client);
         }
 
         private static async Task HandleClient(TcpClient client) {
             ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
-            await WriteToStreamAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
+            await SendMessageAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
             var userName = await RegisterUserAsync(client);
-            await WriteToStreamAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), clientStream);
+            await SendMessageAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), clientStream);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), clientStream);
             await ChatSessionAsync(clientStream);
             await DisconnectClientAsync(userName);
@@ -44,7 +44,7 @@ namespace Server {
             var clientsMessaged = UserNameToClient
                 .Select(pair => pair.Value.GetStream())
                 .Where(stream => !stream.Equals(clientStream))
-                .Select(stream => WriteToStreamAsync(message, stream));
+                .Select(stream => SendMessageAsync(message, stream));
             await Task.WhenAll(clientsMessaged);
             ClientMessage?.Invoke(message.ToString());
         }
@@ -77,7 +77,7 @@ namespace Server {
         }
 
         private static async Task AnnounceAsync(Message message) =>
-            await Task.WhenAll(UserNameToClient.Select(pair => WriteToStreamAsync(message, pair.Value.GetStream())));
+            await Task.WhenAll(UserNameToClient.Select(pair => SendMessageAsync(message, pair.Value.GetStream())));
 
 
         public static event Action<string> ClientMessage;

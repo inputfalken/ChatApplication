@@ -57,7 +57,7 @@ namespace Protocol {
 
         public override string ToString() => JsonConvert.SerializeObject(this);
 
-        public static async Task WriteToStreamAsync(Message message, Stream stream) {
+        public static async Task SendMessageAsync(Message message, Stream stream) {
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
             await stream.WriteAsync(buffer, 0, buffer.Length);
         }
