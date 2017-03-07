@@ -17,10 +17,10 @@ namespace Server {
         private const string Server = "Server";
         private static readonly Dictionary<string, TcpClient> UserNameToClient = new Dictionary<string, TcpClient>();
 
-        public static Task StartAsync(string address, int port) {
+        public static async Task StartAsync(string address, int port) {
             var listener = new TcpListener(IPAddress.Parse(address), port);
             listener.Start();
-            while (true) HandleClient(listener.AcceptTcpClient());
+            while (true) HandleClient(await listener.AcceptTcpClientAsync());
         }
 
         private static async Task<string> RegisterUserAsync(TcpClient client) {
