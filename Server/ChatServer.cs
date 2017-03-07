@@ -34,38 +34,38 @@ namespace Server {
             var clientStream = client.GetStream();
             await WriteToStreamAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
             var userName = await RegisterUserAsync(client);
-            await MessageUserAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), userName);
-            await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), userName);
-            await ChatSessionAsync(userName);
+            await WriteToStreamAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), clientStream);
+            await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), clientStream);
+            await ChatSessionAsync(clientStream);
             await DisconnectClientAsync(userName);
         }
 
-        private static async Task MessageOtherClientsAsync(string message, string userName) {
+        private static async Task MessageOtherClientsAsync(string message, Stream clientStream) {
             var clientsMessaged = UserNameToClient
-                .Where(pair => !pair.Key.Equals(userName))
-                .Select(pair => pair.Key)
-                .Select(name => MessageUserAsync(message, name));
+                .Select(pair => pair.Value.GetStream())
+                .Where(stream => !stream.Equals(clientStream))
+                .Select(stream => WriteToStreamAsync(message, stream));
             await Task.WhenAll(clientsMessaged);
             ClientMessage?.Invoke(message);
         }
 
-        private static async Task ChatSessionAsync(string userName) {
+        private static async Task ChatSessionAsync(Stream stream) {
             var connected = true;
-            using (var reader = new StreamReader(UserNameToClient[userName].GetStream())) {
+            using (var reader = new StreamReader(stream)) {
                 while (connected) {
                     connected = (await ReadMessageAsync(reader))
                         .ToMaybe()
-                        .Do(async msg => await HandleMessage(msg, userName))
+                        .Do(async msg => await HandleMessage(msg, stream))
                         .HasValue;
                 }
             }
         }
 
-        private static async Task HandleMessage(Message message, string userName) {
+        private static async Task HandleMessage(Message message, Stream stream) {
             // This is where the client can create requests about specifik data.
             if (message.Action == Action.MemberMessage) {
                 var memberMessage = message.Parse<MemberMessage>();
-                await MessageOtherClientsAsync(Create(Action.MemberMessage, memberMessage), userName);
+                await MessageOtherClientsAsync(Create(Action.MemberMessage, memberMessage), stream);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Server {
         }
 
         private static async Task AnnounceAsync(string message) =>
-            await Task.WhenAll(UserNameToClient.Select(pair => MessageUserAsync(message, pair.Key)));
+            await Task.WhenAll(UserNameToClient.Select(pair => WriteToStreamAsync(message, pair.Value.GetStream())));
 
 
         public static event Action<string> ClientMessage;
@@ -93,14 +93,6 @@ namespace Server {
                 .Where(userName => !UserNameToClient.ContainsKey(userName)) // Check that the username is not taken.
                 .Where(userName => userName != Server) // Check that username is not the the reserved name Server
                 .Do(userName => UserNameToClient.Add(userName, client)); // Add the user to the register
-        }
-
-
-        // TODO Replace this method with the protocol WriteMethod.
-        private static async Task MessageUserAsync(string message, string sender) {
-            var stream = UserNameToClient[sender].GetStream();
-            var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
-            await stream.WriteAsync(buffer, 0, buffer.Length);
         }
     }
 }
