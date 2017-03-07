@@ -40,13 +40,13 @@ namespace Server {
             await DisconnectClientAsync(userName);
         }
 
-        private static async Task MessageOtherClientsAsync(string message, Stream clientStream) {
+        private static async Task MessageOtherClientsAsync(Message message, Stream clientStream) {
             var clientsMessaged = UserNameToClient
                 .Select(pair => pair.Value.GetStream())
                 .Where(stream => !stream.Equals(clientStream))
                 .Select(stream => WriteToStreamAsync(message, stream));
             await Task.WhenAll(clientsMessaged);
-            ClientMessage?.Invoke(message);
+            ClientMessage?.Invoke(message.ToString());
         }
 
         private static async Task ChatSessionAsync(Stream stream) {
@@ -73,10 +73,10 @@ namespace Server {
             var message = Create(Action.MemberDisconnect, userName);
             UserNameToClient.Remove(userName);
             await AnnounceAsync(message);
-            ClientDisconects?.Invoke(message);
+            ClientDisconects?.Invoke(message.ToString());
         }
 
-        private static async Task AnnounceAsync(string message) =>
+        private static async Task AnnounceAsync(Message message) =>
             await Task.WhenAll(UserNameToClient.Select(pair => WriteToStreamAsync(message, pair.Value.GetStream())));
 
 

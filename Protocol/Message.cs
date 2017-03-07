@@ -42,8 +42,8 @@ namespace Protocol {
         /// <param name="action"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static string Create<T>(Action action, T result)
-            => new Message(action, JsonConvert.SerializeObject(result)).ToString();
+        public static Message Create<T>(Action action, T result)
+            => new Message(action, JsonConvert.SerializeObject(result));
 
         /// <summary>
         ///     Parses the json supplied to it's object.
@@ -56,8 +56,8 @@ namespace Protocol {
         public T Parse<T>() => JsonConvert.DeserializeObject<T>(JsonObject);
 
         public override string ToString() => JsonConvert.SerializeObject(this);
-        // TODO change the string argument to Message
-        public static async Task WriteToStreamAsync(string message, Stream stream) {
+
+        public static async Task WriteToStreamAsync(Message message, Stream stream) {
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
             await stream.WriteAsync(buffer, 0, buffer.Length);
         }

@@ -67,7 +67,7 @@ namespace Client {
             }
         }
 
-        private async Task MessageAsync(string message) {
+        private async Task MessageAsync(Message message) {
             var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
             await _client.GetStream().WriteAsync(buffer, 0, buffer.Length);
         }
