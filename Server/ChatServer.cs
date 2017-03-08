@@ -89,7 +89,7 @@ namespace Server {
             return ParseMessage(await streamReader.ReadLineAsync())
                 .ToMaybe()
                 .Where(message => message.Action == Action.MemberJoin) // Check that the client sends the right action.
-                .Select(message => Parse<string>(message.JsonObject))
+                .Select(message => message.Parse<string>())
                 .Where(userName => !UserNameToClient.ContainsKey(userName)) // Check that the username is not taken.
                 .Where(userName => userName != Server) // Check that username is not the the reserved name Server
                 .Do(userName => UserNameToClient.Add(userName, client)); // Add the user to the register

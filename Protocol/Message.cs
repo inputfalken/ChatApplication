@@ -26,7 +26,7 @@ namespace Protocol {
         public Action Action { get; }
 
         [JsonProperty("result")]
-        public string JsonObject { get; }
+        private string JsonObject { get; }
 
         /// <summary>
         ///     Parses the message into it's basic form.
@@ -45,13 +45,6 @@ namespace Protocol {
         public static Message Create<T>(Action action, T result)
             => new Message(action, JsonConvert.SerializeObject(result));
 
-        /// <summary>
-        ///     Parses the json supplied to it's object.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public static T Parse<T>(string json) => JsonConvert.DeserializeObject<T>(json);
 
         public T Parse<T>() => JsonConvert.DeserializeObject<T>(JsonObject);
 

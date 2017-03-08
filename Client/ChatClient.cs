@@ -27,7 +27,7 @@ namespace Client {
 
         public async Task<string> ReadMessage() {
             var message = ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
-            return Parse<string>(message.JsonObject);
+            return message.Parse<string>();
         }
 
         public async Task SendMessage(string message, string userName)
@@ -75,9 +75,9 @@ namespace Client {
         public async Task<bool> Register(string userName) {
             await MessageAsync(Create(Action.MemberJoin, userName));
             var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
-            var action = ParseMessage(data);
-            if (action.Action == Action.Status) return Parse<bool>(action.JsonObject);
-            throw new IOException($"Expected: {Action.Status}, Was:{action.Action}");
+            var message = ParseMessage(data);
+            if (message.Action == Action.Status) return message.Parse<bool>();
+            throw new IOException($"Expected: {Action.Status}, Was:{message.Action}");
         }
 
         public void CloseConnection() {
