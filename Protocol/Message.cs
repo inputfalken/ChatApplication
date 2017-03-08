@@ -6,15 +6,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Protocol {
-    public enum Action {
-        MemberJoin,
-        MemberDisconnect,
-        Message,
-        Status,
-        SendMembers,
-        ChatMessage
-    }
-
     public class Message {
         [JsonConstructor]
         private Message(Action action, string jsonObject) {
@@ -65,15 +56,5 @@ namespace Protocol {
             var json = await reader.ReadLineAsync();
             return json == null ? null : ParseMessage(json);
         }
-    }
-
-    public class MemberMessage {
-        public MemberMessage(string userName, string message) {
-            UserName = userName;
-            Message = message;
-        }
-
-        public string UserName { get; }
-        public string Message { get; }
     }
 }
