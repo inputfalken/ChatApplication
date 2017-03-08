@@ -15,6 +15,7 @@ namespace Client {
         private readonly TcpClient _client;
         private readonly string _ip;
         private readonly int _port;
+        private Stream _stream;
 
 
         public ChatClient(string ip, int port) {
@@ -23,15 +24,13 @@ namespace Client {
             _client = new TcpClient();
         }
 
-        public async Task Connect() => await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
-
-        public async Task<string> ReadMessage() {
-            var message = ParseMessage(await new StreamReader(_client.GetStream()).ReadLineAsync());
-            return message.Parse<string>();
+        public async Task Connect() {
+            await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
+            _stream = _client.GetStream();
         }
 
         public async Task SendMessage(string message, string userName)
-            => await MessageAsync(Create(Action.MemberMessage, new MemberMessage(userName, message)));
+            => await SendMessageAsync(Create(Action.MemberMessage, new MemberMessage(userName, message)), _stream);
 
         public event Action<string> MessageRecieved;
         public event Action<string> NewMember;
@@ -67,14 +66,10 @@ namespace Client {
             }
         }
 
-        private async Task MessageAsync(Message message) {
-            var buffer = Encoding.ASCII.GetBytes(message + Environment.NewLine);
-            await _client.GetStream().WriteAsync(buffer, 0, buffer.Length);
-        }
 
         public async Task<bool> Register(string userName) {
-            await MessageAsync(Create(Action.MemberJoin, userName));
-            var data = await new StreamReader(_client.GetStream()).ReadLineAsync();
+            await SendMessageAsync(Create(Action.MemberJoin, userName), _stream);
+            var data = await new StreamReader(_stream).ReadLineAsync();
             var message = ParseMessage(data);
             if (message.Action == Action.Status) return message.Parse<bool>();
             throw new IOException($"Expected: {Action.Status}, Was:{message.Action}");

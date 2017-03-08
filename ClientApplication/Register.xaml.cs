@@ -18,7 +18,6 @@ namespace ClientApplication {
         private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs) {
             try {
                 await NetusClient.Connect();
-                Label.Content = await NetusClient.ReadMessage();
             }
             catch (Exception) {
                 MessageBox.Show("Could not establish an connection to the Server.");
@@ -33,7 +32,7 @@ namespace ClientApplication {
                 Close();
             }
             else {
-                Label.Content = $"Could register with {UserNameBox.Text}, try with a different name";
+                Label.Content = $"{UserNameBox.Text} is taken, try with a different name";
             }
         }
     }

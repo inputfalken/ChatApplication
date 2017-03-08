@@ -32,7 +32,6 @@ namespace Server {
         private static async Task HandleClient(TcpClient client) {
             ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
-            await SendMessageAsync(Create(Action.Message, "Welcome please enter your name"), clientStream);
             var userName = await RegisterUserAsync(client);
             await SendMessageAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), clientStream);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), clientStream);
