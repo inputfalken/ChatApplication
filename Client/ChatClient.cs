@@ -39,6 +39,7 @@ namespace Client {
 
         public async Task Listen() {
             using (var reader = new StreamReader(_client.GetStream())) {
+                //TODO Tell server that client is ready for a chat session. It's the reason to why some clients are not synced.
                 while (true) {
                     var message = await ReadMessageAsync(reader);
                     switch (message.Action) {
