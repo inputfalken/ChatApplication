@@ -12,7 +12,7 @@ namespace Protocol {
         Message,
         Status,
         SendMembers,
-        MemberMessage
+        ChatMessage
     }
 
     public class Message {

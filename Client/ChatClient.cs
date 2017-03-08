@@ -30,7 +30,7 @@ namespace Client {
         }
 
         public async Task SendMessage(string message, string userName)
-            => await SendMessageAsync(Create(Action.MemberMessage, new MemberMessage(userName, message)), _stream);
+            => await SendMessageAsync(Create(Action.ChatMessage, new MemberMessage(userName, message)), _stream);
 
         public event Action<string> MessageRecieved;
         public event Action<string> NewMember;
@@ -49,7 +49,7 @@ namespace Client {
                         case Action.SendMembers:
                             FetchMembers?.Invoke(message.Parse<IReadOnlyList<string>>());
                             break;
-                        case Action.MemberMessage:
+                        case Action.ChatMessage:
                             var memberMessage = message.Parse<MemberMessage>();
                             MessageRecieved?.Invoke($"{memberMessage.UserName}: {memberMessage.Message}");
                             break;

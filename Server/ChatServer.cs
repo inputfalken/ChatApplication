@@ -62,9 +62,9 @@ namespace Server {
 
         private static async Task HandleMessage(Message message, Stream stream) {
             // This is where the client can create requests about specifik data.
-            if (message.Action == Action.MemberMessage) {
+            if (message.Action == Action.ChatMessage) {
                 var memberMessage = message.Parse<MemberMessage>();
-                await MessageOtherClientsAsync(Create(Action.MemberMessage, memberMessage), stream);
+                await MessageOtherClientsAsync(Create(Action.ChatMessage, memberMessage), stream);
             }
         }
 
