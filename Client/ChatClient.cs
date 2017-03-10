@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using Protocol;
@@ -32,10 +33,10 @@ namespace Client {
         public async Task SendMessage(string message, string userName)
             => await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
 
-        public event Action<string> MessageRecieved;
-        public event Action<string> NewMember;
-        public event Action<string> MemberDisconnect;
-        public event Action<IReadOnlyList<string>> FetchMembers;
+        public Subject<string> MessageRecieved { get; } = new Subject<string>();
+        public Subject<IReadOnlyList<string>> FetchMembers { get; } = new Subject<IReadOnlyList<string>>();
+        public Subject<string> NewMember { get; } = new Subject<string>();
+        public Subject<string> MemberDisconnected { get; } = new Subject<string>();
 
         public async Task Listen() {
             using (var reader = new StreamReader(_client.GetStream())) {
@@ -44,21 +45,21 @@ namespace Client {
                     var message = await ReadMessageAsync(reader);
                     switch (message.Action) {
                         case Action.MemberJoin:
-                            NewMember?.Invoke(message.Parse<string>());
+                            NewMember.OnNext(message.Parse<string>());
                             break;
                         case Action.SendMembers:
-                            FetchMembers?.Invoke(message.Parse<IReadOnlyList<string>>());
+                            FetchMembers.OnNext(message.Parse<IReadOnlyList<string>>());
                             break;
                         case Action.ChatMessage:
                             var memberMessage = message.Parse<ChatMessage>();
-                            MessageRecieved?.Invoke($"{memberMessage.UserName}: {memberMessage.Message}");
+                            MessageRecieved.OnNext($"{memberMessage.UserName}: {memberMessage.Message}");
                             break;
                         case Action.Message:
                             break;
                         case Action.Status:
                             break;
                         case Action.MemberDisconnect:
-                            MemberDisconnect?.Invoke(message.Parse<string>());
+                            MemberDisconnected.OnNext(message.Parse<string>());
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
