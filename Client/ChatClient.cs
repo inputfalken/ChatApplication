@@ -34,9 +34,9 @@ namespace Client {
             => await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
 
         public Subject<string> MessageRecieved { get; } = new Subject<string>();
-        public Subject<IReadOnlyList<string>> FetchMembers { get; } = new Subject<IReadOnlyList<string>>();
-        public Subject<string> NewMember { get; } = new Subject<string>();
-        public Subject<string> MemberDisconnected { get; } = new Subject<string>();
+        public Subject<IReadOnlyList<string>> MembersOnline { get; } = new Subject<IReadOnlyList<string>>();
+        public Subject<string> MemberJoins { get; } = new Subject<string>();
+        public Subject<string> MemberDisconnects { get; } = new Subject<string>();
 
         public async Task Listen() {
             using (var reader = new StreamReader(_client.GetStream())) {
@@ -45,10 +45,10 @@ namespace Client {
                     var message = await ReadMessageAsync(reader);
                     switch (message.Action) {
                         case Action.MemberJoin:
-                            NewMember.OnNext(message.Parse<string>());
+                            MemberJoins.OnNext(message.Parse<string>());
                             break;
                         case Action.SendMembers:
-                            FetchMembers.OnNext(message.Parse<IReadOnlyList<string>>());
+                            MembersOnline.OnNext(message.Parse<IReadOnlyList<string>>());
                             break;
                         case Action.ChatMessage:
                             var memberMessage = message.Parse<ChatMessage>();
@@ -59,7 +59,7 @@ namespace Client {
                         case Action.Status:
                             break;
                         case Action.MemberDisconnect:
-                            MemberDisconnected.OnNext(message.Parse<string>());
+                            MemberDisconnects.OnNext(message.Parse<string>());
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();

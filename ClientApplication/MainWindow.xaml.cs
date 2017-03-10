@@ -34,17 +34,17 @@ namespace ClientApplication {
 
             chatClient.MessageRecieved
                 .ObserveOn(dispatcherScheduler)
-                .Subscribe(s => ChatBox.Items.Add(s));
+                .Subscribe(message => ChatBox.Items.Add(message));
 
-            chatClient.NewMember
+            chatClient.MemberJoins
                 .ObserveOn(dispatcherScheduler)
-                .Subscribe(s => Members.Items.Add(s));
+                .Subscribe(username => Members.Items.Add(username));
 
-            chatClient.MemberDisconnected
+            chatClient.MemberDisconnects
                 .ObserveOn(dispatcherScheduler)
-                .Subscribe(s => Members.Items.Remove(s));
+                .Subscribe(username => Members.Items.Remove(username));
 
-            chatClient.FetchMembers
+            chatClient.MembersOnline
                 .ObserveOn(dispatcherScheduler)
                 .Subscribe(userNames => {
                     foreach (var userName in userNames) Members.Items.Add(userName);
@@ -55,7 +55,6 @@ namespace ClientApplication {
 
             Task.Run(chatClient.Listen);
         }
-
 
         private void AddToChatBox(string message) => ChatBox.Items.Add(message);
     }
