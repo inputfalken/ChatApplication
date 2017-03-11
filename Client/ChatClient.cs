@@ -33,8 +33,8 @@ namespace Client {
             _stream = _client.GetStream();
         }
 
-        public async Task SendMessageAsync(string message, string userName)
-            => await Message.SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
+        public async Task SendChatMessageAsync(string message, string userName)
+            => await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
 
         public async Task ListenAsync() {
             using (var reader = new StreamReader(_client.GetStream())) {

@@ -29,7 +29,7 @@ namespace ClientApplication {
                 .Select(_ => MessageInputBox.Text)
                 .Subscribe(async message => {
                     AddToChatBox(message);
-                    await chatClient.SendMessageAsync(message, _userName);
+                    await chatClient.SendChatMessageAsync(message, _userName);
                 });
 
             chatClient.MessageRecieved
