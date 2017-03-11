@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using System.Windows;
 using Client;
 using ReactiveUI;
 using static System.Reactive.Linq.Observable;
+using static ClientApplication.Helper;
 
 namespace ClientApplication {
     /// <summary>
@@ -27,7 +27,8 @@ namespace ClientApplication {
         private void OnLoaded(ChatClient chatClient) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
 
-            FromEventPattern<RoutedEventHandler, RoutedEventArgs>(e => SendBtn.Click += e, e => SendBtn.Click -= e)
+
+            ObserveOnClick(SendBtn)
                 .Select(_ => MessageInputBox.Text)
                 .Subscribe(async message => {
                     AddToChatBox(message);

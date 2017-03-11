@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Client;
 using static System.Reactive.Linq.Observable;
+using static ClientApplication.Helper;
 
 namespace ClientApplication {
     /// <summary>
@@ -32,8 +33,7 @@ namespace ClientApplication {
                 MessageBox.Show("Could not establish an connection to the Server.");
                 Close();
             }
-            FromEventPattern<RoutedEventHandler, RoutedEventArgs>(e => RegisterBtn.Click += e,
-                    e => RegisterBtn.Click -= e)
+            ObserveOnClick(RegisterBtn)
                 .SelectMany(_ => chatClient.RegisterAsync(UserNameBox.Text)) // Consumes the task
                 .ObserveOn(dispatcherScheduler) // Use the dispatcher for the following UI updates.
                 .Subscribe(successfulRegister => {
