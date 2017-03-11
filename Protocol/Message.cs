@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,8 +46,8 @@ namespace Protocol {
         }
 
         /// <summary>
-        /// Returns a message when the client sends a message.
-        /// If client disconnects null is returned.
+        ///     Returns a message when the client sends a message.
+        ///     If client disconnects null is returned.
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>

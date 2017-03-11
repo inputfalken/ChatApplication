@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Client;
-using ReactiveUI;
 using static System.Reactive.Linq.Observable;
 using static ClientApplication.Helper;
 

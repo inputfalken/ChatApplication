@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Functional.Maybe;
 using Protocol;
@@ -51,12 +49,11 @@ namespace Server {
         private static async Task ChatSessionAsync(Stream stream) {
             var connected = true;
             using (var reader = new StreamReader(stream)) {
-                while (connected) {
+                while (connected)
                     connected = (await ReadMessageAsync(reader))
                         .ToMaybe()
                         .Do(async msg => await HandleMessage(msg, stream))
                         .HasValue;
-                }
             }
         }
 

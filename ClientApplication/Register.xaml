@@ -6,7 +6,8 @@
         mc:Ignorable="d"
         Title="Register" Height="300" Width="300">
     <Grid>
-        <Label x:Name="Label" Content="Enter a UserName" HorizontalContentAlignment="Center" HorizontalAlignment="Center"
+        <Label x:Name="Label" Content="Enter a UserName" HorizontalContentAlignment="Center"
+               HorizontalAlignment="Center"
                Margin="0,41,0,0" VerticalAlignment="Top" Width="272" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBox x:Name="UserNameBox" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="UserName"
