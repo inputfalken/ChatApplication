@@ -33,10 +33,10 @@ namespace Client {
         public async Task SendMessage(string message, string userName)
             => await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
 
-        public Subject<string> MessageRecieved { get; } = new Subject<string>();
-        public Subject<IReadOnlyList<string>> MembersOnline { get; } = new Subject<IReadOnlyList<string>>();
-        public Subject<string> MemberJoins { get; } = new Subject<string>();
-        public Subject<string> MemberDisconnects { get; } = new Subject<string>();
+        public ISubject<string> MessageRecieved { get; } = new Subject<string>();
+        public ISubject<IReadOnlyList<string>> MembersOnline { get; } = new Subject<IReadOnlyList<string>>();
+        public ISubject<string> MemberJoins { get; } = new Subject<string>();
+        public ISubject<string> MemberDisconnects { get; } = new Subject<string>();
 
         public async Task Listen() {
             using (var reader = new StreamReader(_client.GetStream())) {
