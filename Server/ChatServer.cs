@@ -13,7 +13,7 @@ using Action = Protocol.Action;
 namespace Server {
     public static class ChatServer {
         private const string Server = "Server";
-        private static readonly Dictionary<string, TcpClient> UserNameToClient = new Dictionary<string, TcpClient>();
+        private static readonly Dictionary<string, TcpClient> Members = new Dictionary<string, TcpClient>();
 
         public static async Task StartAsync(string address, int port) {
             var listener = new TcpListener(IPAddress.Parse(address), port);
@@ -31,14 +31,14 @@ namespace Server {
             ClientConnects?.Invoke("Client connected");
             var clientStream = client.GetStream();
             var userName = await RegisterUserAsync(client);
-            await SendMessageAsync(Create(Action.SendMembers, UserNameToClient.Keys.ToArray()), clientStream);
+            await SendMessageAsync(Create(Action.SendMembers, Members.Keys.ToArray()), clientStream);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), clientStream);
             await ChatSessionAsync(clientStream);
             await DisconnectClientAsync(userName);
         }
 
         private static async Task MessageOtherClientsAsync(Message message, Stream clientStream) {
-            var clientsMessaged = UserNameToClient
+            var clientsMessaged = Members
                 .Select(pair => pair.Value.GetStream())
                 .Where(stream => !stream.Equals(clientStream))
                 .Select(stream => SendMessageAsync(message, stream));
@@ -67,13 +67,13 @@ namespace Server {
 
         private static async Task DisconnectClientAsync(string userName) {
             var message = Create(Action.MemberDisconnect, userName);
-            UserNameToClient.Remove(userName);
+            Members.Remove(userName);
             await AnnounceAsync(message);
             ClientDisconects?.Invoke(message.ToString());
         }
 
         private static async Task AnnounceAsync(Message message) =>
-            await Task.WhenAll(UserNameToClient.Select(pair => SendMessageAsync(message, pair.Value.GetStream())));
+            await Task.WhenAll(Members.Select(pair => SendMessageAsync(message, pair.Value.GetStream())));
 
 
         public static event Action<string> ClientMessage;
@@ -86,9 +86,9 @@ namespace Server {
                 .ToMaybe()
                 .Where(message => message.Action == Action.MemberJoin) // Check that the client sends the right action.
                 .Select(message => message.Parse<string>())
-                .Where(userName => !UserNameToClient.ContainsKey(userName)) // Check that the username is not taken.
+                .Where(userName => !Members.ContainsKey(userName)) // Check that the username is not taken.
                 .Where(userName => userName != Server) // Check that username is not the the reserved name Server
-                .Do(userName => UserNameToClient.Add(userName, client)); // Add the user to the register
+                .Do(userName => Members.Add(userName, client)); // Add the user to the register
         }
     }
 }
