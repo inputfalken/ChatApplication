@@ -14,11 +14,11 @@ namespace ClientApplication {
     public partial class MainWindow : Window {
         private readonly string _userName;
 
-        public MainWindow(ChatClient netusClient, string userName) {
+        public MainWindow(ChatClient chatClient, string userName) {
             InitializeComponent();
             _userName = userName;
             FromEventPattern(this, "Loaded")
-                .Select(_ => netusClient)
+                .Select(_ => chatClient)
                 .Subscribe(OnLoaded);
         }
 

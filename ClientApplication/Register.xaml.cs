@@ -24,19 +24,19 @@ namespace ClientApplication {
 
         private async void OnLoaded(EventPattern<RoutedEventArgs> eventPattern) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
-            var netusClient = new ChatClient("10.0.2.15", 23000);
+            var chatClient = new ChatClient("10.0.2.15", 23000);
             try {
-                await netusClient.Connect();
+                await chatClient.Connect();
             }
             catch (Exception) {
                 MessageBox.Show("Could not establish an connection to the Server.");
                 Close();
             }
             FromEventPattern(RegisterButton, "Click") // Turns the event of into an observable.
-                .SelectMany(_ => netusClient.Register(UserNameBox.Text)) // Consumes the task
+                .SelectMany(_ => chatClient.Register(UserNameBox.Text)) // Consumes the task
                 .ObserveOn(dispatcherScheduler) // Use the dispatcher for the following UI updates.
                 .Subscribe(successfulRegister => {
-                    if (successfulRegister) ProceedToMainWindow(netusClient);
+                    if (successfulRegister) ProceedToMainWindow(chatClient);
                     else Label.Content = $"{UserNameBox.Text} is taken, try with a different name";
                 });
         }
