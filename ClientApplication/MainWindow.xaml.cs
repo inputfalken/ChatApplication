@@ -29,7 +29,7 @@ namespace ClientApplication {
                 .Select(_ => MessageInputBox.Text)
                 .Subscribe(async message => {
                     AddToChatBox(message);
-                    await chatClient.SendMessage(message, _userName);
+                    await chatClient.SendMessageAsync(message, _userName);
                 });
 
             chatClient.MessageRecieved
@@ -53,7 +53,7 @@ namespace ClientApplication {
             FromEventPattern(this, "Closed")
                 .Subscribe(_ => chatClient.CloseConnection());
 
-            Task.Run(chatClient.Listen);
+            Task.Run(chatClient.ListenAsync);
         }
 
         private void AddToChatBox(string message) => ChatBox.Items.Add(message);

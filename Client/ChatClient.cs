@@ -30,15 +30,15 @@ namespace Client {
             _stream = _client.GetStream();
         }
 
-        public async Task SendMessage(string message, string userName)
-            => await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
+        public async Task SendMessageAsync(string message, string userName)
+            => await Message.SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
 
         public ISubject<string> MessageRecieved { get; } = new Subject<string>();
         public ISubject<IReadOnlyList<string>> MembersOnline { get; } = new Subject<IReadOnlyList<string>>();
         public ISubject<string> MemberJoins { get; } = new Subject<string>();
         public ISubject<string> MemberDisconnects { get; } = new Subject<string>();
 
-        public async Task Listen() {
+        public async Task ListenAsync() {
             using (var reader = new StreamReader(_client.GetStream())) {
                 //TODO Tell server that client is ready for a chat session. It's the reason to why some clients are not synced.
                 while (true) {
@@ -69,8 +69,8 @@ namespace Client {
         }
 
 
-        public async Task<bool> Register(string userName) {
-            await SendMessageAsync(Create(Action.MemberJoin, userName), _stream);
+        public async Task<bool> RegisterAsync(string userName) {
+            await Message.SendMessageAsync(Create(Action.MemberJoin, userName), _stream);
             var data = await new StreamReader(_stream).ReadLineAsync();
             var message = ParseMessage(data);
             if (message.Action == Action.Status) return message.Parse<bool>();

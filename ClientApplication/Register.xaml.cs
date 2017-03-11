@@ -33,7 +33,7 @@ namespace ClientApplication {
                 Close();
             }
             FromEventPattern(RegisterButton, "Click") // Turns the event of into an observable.
-                .SelectMany(_ => chatClient.Register(UserNameBox.Text)) // Consumes the task
+                .SelectMany(_ => chatClient.RegisterAsync(UserNameBox.Text)) // Consumes the task
                 .ObserveOn(dispatcherScheduler) // Use the dispatcher for the following UI updates.
                 .Subscribe(successfulRegister => {
                     if (successfulRegister) ProceedToMainWindow(chatClient);
