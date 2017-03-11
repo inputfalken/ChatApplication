@@ -13,7 +13,7 @@ using Action = Protocol.Action;
 namespace Server {
     public static class ChatServer {
         private const string Server = "Server";
-        private static readonly Dictionary<string, TcpClient> Members = new Dictionary<string, TcpClient>();
+        private static readonly IDictionary<string, TcpClient> Members = new Dictionary<string, TcpClient>();
 
         public static async Task StartAsync(string address, int port) {
             var listener = new TcpListener(IPAddress.Parse(address), port);
