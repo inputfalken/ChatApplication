@@ -68,7 +68,7 @@ namespace Client {
 
 
         public async Task<bool> RegisterAsync(string userName) {
-            await Message.SendMessageAsync(Create(Action.MemberJoin, userName), _stream);
+            await SendMessageAsync(Create(Action.MemberJoin, userName), _stream);
             var data = await new StreamReader(_stream).ReadLineAsync();
             var message = ParseMessage(data);
             if (message.Action == Action.Status) return message.Parse<bool>();
