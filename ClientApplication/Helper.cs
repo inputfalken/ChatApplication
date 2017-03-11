@@ -6,10 +6,10 @@ using System.Windows.Controls.Primitives;
 
 namespace ClientApplication {
     public static class Helper {
-        internal static IObservable<EventPattern<RoutedEventArgs>> ObserveOnClick(ButtonBase btn)
+        internal static IObservable<EventPattern<RoutedEventArgs>> ObserveOnClick(ButtonBase button)
             => Observable.FromEventPattern<RoutedEventHandler, RoutedEventArgs>(
-                eventhandler => btn.Click += eventhandler,
-                eventhandler => btn.Click -= eventhandler
+                eventhandler => button.Click += eventhandler,
+                eventhandler => button.Click -= eventhandler
             );
     }
 }

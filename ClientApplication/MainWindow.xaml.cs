@@ -25,7 +25,6 @@ namespace ClientApplication {
         private void OnLoaded(ChatClient chatClient) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
 
-
             ObserveOnClick(SendBtn)
                 .Select(_ => MessageInputBox.Text)
                 .Subscribe(async message => {
