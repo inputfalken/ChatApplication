@@ -18,7 +18,7 @@ namespace ClientApplication {
     public partial class Register : Window {
         public Register() {
             InitializeComponent();
-            FromEventPattern<RoutedEventArgs>(this, "Loaded")
+            FromEventPattern<RoutedEventHandler, RoutedEventArgs>(e => Loaded += e, e => Loaded -= e)
                 .Subscribe(OnLoaded);
         }
 
@@ -32,7 +32,8 @@ namespace ClientApplication {
                 MessageBox.Show("Could not establish an connection to the Server.");
                 Close();
             }
-            FromEventPattern(RegisterButton, "Click") // Turns the event of into an observable.
+            FromEventPattern<RoutedEventHandler, RoutedEventArgs>(e => RegisterBtn.Click += e,
+                    e => RegisterBtn.Click -= e)
                 .SelectMany(_ => chatClient.RegisterAsync(UserNameBox.Text)) // Consumes the task
                 .ObserveOn(dispatcherScheduler) // Use the dispatcher for the following UI updates.
                 .Subscribe(successfulRegister => {

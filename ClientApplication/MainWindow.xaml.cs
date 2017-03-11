@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Client;
+using ReactiveUI;
 using static System.Reactive.Linq.Observable;
 
 namespace ClientApplication {
@@ -17,7 +19,7 @@ namespace ClientApplication {
         public MainWindow(ChatClient chatClient, string userName) {
             InitializeComponent();
             _userName = userName;
-            FromEventPattern(this, "Loaded")
+            FromEventPattern<RoutedEventHandler, RoutedEventArgs>(e => Loaded += e, e => Loaded -= e)
                 .Select(_ => chatClient)
                 .Subscribe(OnLoaded);
         }
@@ -25,7 +27,7 @@ namespace ClientApplication {
         private void OnLoaded(ChatClient chatClient) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
 
-            FromEventPattern(SendBtn, "Click")
+            FromEventPattern<RoutedEventHandler, RoutedEventArgs>(e => SendBtn.Click += e, e => SendBtn.Click -= e)
                 .Select(_ => MessageInputBox.Text)
                 .Subscribe(async message => {
                     AddToChatBox(message);
@@ -50,11 +52,12 @@ namespace ClientApplication {
                     foreach (var userName in userNames) Members.Items.Add(userName);
                 });
 
-            FromEventPattern(this, "Closed")
+            FromEventPattern<EventHandler, EventArgs>(e => Closed += e, e => Closed -= e)
                 .Subscribe(_ => chatClient.CloseConnection());
 
             Task.Run(chatClient.ListenAsync);
         }
+
 
         private void AddToChatBox(string message) => ChatBox.Items.Add(message);
     }
