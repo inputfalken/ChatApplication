@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Functional.Maybe;
 using Protocol;
@@ -14,6 +15,16 @@ namespace Server {
     public static class ChatServer {
         private const string Server = "Server";
         private static readonly IDictionary<string, TcpClient> Members = new Dictionary<string, TcpClient>();
+        public static readonly ISubject<string> ClientMessage;
+        public static readonly ISubject<string> ClientConnects;
+        public static readonly ISubject<string> ClientDisconects;
+
+        static ChatServer() {
+            ClientMessage = new Subject<string>();
+            ClientConnects = new Subject<string>();
+            ClientDisconects = new Subject<string>();
+        }
+
 
         public static async Task StartAsync(string address, int port) {
             var listener = new TcpListener(IPAddress.Parse(address), port);
@@ -28,7 +39,7 @@ namespace Server {
         }
 
         private static async Task HandleClient(TcpClient client) {
-            ClientConnects?.Invoke("Client connected");
+            ClientConnects.OnNext("Client connected");
             var clientStream = client.GetStream();
             var userName = await RegisterUserAsync(client);
             await SendMessageAsync(Create(Action.SendMembers, Members.Keys.ToArray()), clientStream);
@@ -43,7 +54,7 @@ namespace Server {
                 .Where(stream => !stream.Equals(clientStream))
                 .Select(stream => SendMessageAsync(message, stream));
             await Task.WhenAll(clientsMessaged);
-            ClientMessage?.Invoke(message.ToString());
+            ClientMessage.OnNext(message.ToString());
         }
 
         private static async Task ChatSessionAsync(Stream stream) {
@@ -69,16 +80,12 @@ namespace Server {
             var message = Create(Action.MemberDisconnect, userName);
             Members.Remove(userName);
             await AnnounceAsync(message);
-            ClientDisconects?.Invoke(message.ToString());
+            ClientDisconects.OnNext(message.ToString());
         }
 
         private static async Task AnnounceAsync(Message message) =>
             await Task.WhenAll(Members.Select(pair => SendMessageAsync(message, pair.Value.GetStream())));
 
-
-        public static event Action<string> ClientMessage;
-        public static event Action<string> ClientConnects;
-        public static event Action<string> ClientDisconects;
 
         private static async Task<Maybe<string>> TryRegisterUserAsync(TcpClient client) {
             var streamReader = new StreamReader(client.GetStream());
