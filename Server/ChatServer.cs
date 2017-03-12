@@ -15,14 +15,17 @@ namespace Server {
     public static class ChatServer {
         private const string Server = "Server";
         private static readonly IDictionary<string, TcpClient> Members = new Dictionary<string, TcpClient>();
-        public static readonly ISubject<string> ClientMessage;
-        public static readonly ISubject<string> ClientConnects;
-        public static readonly ISubject<string> ClientDisconects;
+
+        public static ISubject<string> ClientMessage { get; }
+        public static ISubject<string> ClientConnects { get; }
+        public static ISubject<string> ClientDisconects { get; }
+        public static ISubject<string> ClientRegistered { get; }
 
         static ChatServer() {
             ClientMessage = new Subject<string>();
             ClientConnects = new Subject<string>();
             ClientDisconects = new Subject<string>();
+            ClientRegistered = new Subject<string>();
         }
 
 
@@ -42,6 +45,7 @@ namespace Server {
             ClientConnects.OnNext("Client connected");
             var clientStream = client.GetStream();
             var userName = await RegisterUserAsync(client);
+            ClientRegistered.OnNext(userName);
             await SendMessageAsync(Create(Action.SendMembers, Members.Keys.ToArray()), clientStream);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), clientStream);
             await ChatSessionAsync(clientStream);
