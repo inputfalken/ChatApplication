@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Functional.Maybe;
 using Protocol;
+using ReactiveUI;
 using static Protocol.Message;
 using Action = Protocol.Action;
 
@@ -32,7 +34,18 @@ namespace Server {
         public static async Task StartAsync(string address, int port) {
             var listener = new TcpListener(IPAddress.Parse(address), port);
             listener.Start();
-            while (true) HandleClient(await listener.AcceptTcpClientAsync());
+            var subject = new Subject<TcpClient>();
+
+            subject
+                .Subscribe(client => ClientConnects.OnNext($"Client: {client.Client.RemoteEndPoint} connected"));
+
+            subject
+                .SelectMany(RegisterUserAsync, (client, s) => new User(s, client))
+                .Subscribe(HandleRegisteredUser);
+
+            while (true) {
+                subject.OnNext(await listener.AcceptTcpClientAsync());
+            }
         }
 
         private static async Task<string> RegisterUserAsync(TcpClient client) {
@@ -41,15 +54,13 @@ namespace Server {
             return maybe.HasValue ? maybe.Value : await RegisterUserAsync(client);
         }
 
-        private static async Task HandleClient(TcpClient client) {
-            ClientConnects.OnNext("Client connected");
-            var clientStream = client.GetStream();
-            var userName = await RegisterUserAsync(client);
-            ClientRegistered.OnNext(userName);
+        private static async void HandleRegisteredUser(User user) {
+            ClientRegistered.OnNext($"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}");
+            var clientStream = user.Client.GetStream();
             await SendMessageAsync(Create(Action.SendMembers, Members.Keys.ToArray()), clientStream);
-            await MessageOtherClientsAsync(Create(Action.MemberJoin, userName), clientStream);
+            await MessageOtherClientsAsync(Create(Action.MemberJoin, user.Name), clientStream);
             await ChatSessionAsync(clientStream);
-            await DisconnectClientAsync(userName);
+            await DisconnectClientAsync(user.Name);
         }
 
         private static async Task MessageOtherClientsAsync(Message message, Stream clientStream) {
@@ -100,6 +111,16 @@ namespace Server {
                 .Where(userName => !Members.ContainsKey(userName)) // Check that the username is not taken.
                 .Where(userName => userName != Server) // Check that username is not the the reserved name Server
                 .Do(userName => Members.Add(userName, client)); // Add the user to the register
+        }
+    }
+
+    public class User {
+        public string Name { get; }
+        public TcpClient Client { get; }
+
+        public User(string name, TcpClient client) {
+            Name = name;
+            Client = client;
         }
     }
 }

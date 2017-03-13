@@ -9,6 +9,7 @@ namespace ServerApplication {
             ChatServer.ClientConnects.Subscribe(Console.WriteLine);
             ChatServer.ClientDisconects.Subscribe(Console.WriteLine);
             ChatServer.ClientMessage.Subscribe(Console.WriteLine);
+            ChatServer.ClientRegistered.Subscribe(Console.WriteLine);
             Console.WriteLine("Press enter to kill the server");
             Console.ReadLine();
         }
