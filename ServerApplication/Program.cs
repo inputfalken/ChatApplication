@@ -10,7 +10,7 @@ namespace ServerApplication {
         private static void Main() {
             var address = Dns.GetHostAddresses(Dns.GetHostName())
                 .Where(ipAddress => ipAddress.AddressFamily == AddressFamily.InterNetwork)
-                .Select(ipAddress => new IPEndPoint(ipAddress, 23000))
+                .Select(ipAddress => new IPEndPoint(ipAddress, 9000))
                 .First();
             Task.Run(() => ChatServer.StartAsync(address));
             ChatServer.ClientConnects.Subscribe(Console.WriteLine);
