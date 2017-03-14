@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,8 +17,7 @@ using Action = Protocol.Action;
 namespace Server {
     public static class ChatServer {
         private const string Server = "Server";
-        private static readonly IDictionary<string, TcpClient> Members = new Dictionary<string, TcpClient>();
-
+        private static readonly ISet<User> Users = new HashSet<User>(User.Comparer);
         public static ISubject<string> ClientMessage { get; }
         public static ISubject<string> ClientConnects { get; }
         public static ISubject<string> ClientDisconects { get; }
@@ -40,7 +40,7 @@ namespace Server {
                 .Subscribe(client => ClientConnects.OnNext($"Client: {client.Client.RemoteEndPoint} connected"));
 
             subject
-                .SelectMany(RegisterUserAsync, (client, name) => new User(name, client))
+                .SelectMany(RegisterUserAsync)
                 .Subscribe(HandleRegisteredUser);
 
             while (true) {
@@ -48,7 +48,7 @@ namespace Server {
             }
         }
 
-        private static async Task<string> RegisterUserAsync(TcpClient client) {
+        private static async Task<User> RegisterUserAsync(TcpClient client) {
             var maybe = await TryRegisterUserAsync(client);
             await SendMessageAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
             return maybe.HasValue ? maybe.Value : await RegisterUserAsync(client);
@@ -57,15 +57,15 @@ namespace Server {
         private static async void HandleRegisteredUser(User user) {
             ClientRegistered.OnNext($"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}");
             var clientStream = user.Client.GetStream();
-            await SendMessageAsync(Create(Action.SendMembers, Members.Keys.ToArray()), clientStream);
+            await SendMessageAsync(Create(Action.SendMembers, Users.Select(u => u.Name).ToArray()), clientStream);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, user.Name), clientStream);
             await ChatSessionAsync(clientStream);
-            await DisconnectClientAsync(user.Name);
+            await DisconnectClientAsync(user);
         }
 
         private static async Task MessageOtherClientsAsync(Message message, Stream clientStream) {
-            var clientsMessaged = Members
-                .Select(pair => pair.Value.GetStream())
+            var clientsMessaged = Users
+                .Select(user => user.Client.GetStream())
                 .Where(stream => !stream.Equals(clientStream))
                 .Select(stream => SendMessageAsync(message, stream));
             await Task.WhenAll(clientsMessaged);
@@ -91,36 +91,45 @@ namespace Server {
             }
         }
 
-        private static async Task DisconnectClientAsync(string userName) {
-            var message = Create(Action.MemberDisconnect, userName);
-            Members.Remove(userName);
+        private static async Task DisconnectClientAsync(User user) {
+            var message = Create(Action.MemberDisconnect, user.Name);
+            lock (Users) Users.Remove(user);
             await AnnounceAsync(message);
             ClientDisconects.OnNext(message.ToString());
         }
 
         private static async Task AnnounceAsync(Message message) =>
-            await Task.WhenAll(Members.Select(pair => SendMessageAsync(message, pair.Value.GetStream())));
+            await Task.WhenAll(Users.Select(pair => SendMessageAsync(message, pair.Client.GetStream())));
 
 
-        private static async Task<Maybe<string>> TryRegisterUserAsync(TcpClient client) {
+        private static async Task<Maybe<User>> TryRegisterUserAsync(TcpClient client) {
             var streamReader = new StreamReader(client.GetStream());
             return ParseMessage(await streamReader.ReadLineAsync())
                 .ToMaybe()
                 .Where(message => message.Action == Action.MemberJoin) // Check that the client sends the right action.
                 .Select(message => message.Parse<string>())
-                .Where(userName => !Members.ContainsKey(userName)) // Check that the username is not taken.
                 .Where(userName => userName != Server) // Check that username is not the the reserved name Server
-                .Do(userName => Members.Add(userName, client)); // Add the user to the register
+                .Select(userName => new User(userName, client))
+                .Where(user => {
+                    lock (Users) return Users.Add(user);
+                });
         }
-    }
 
-    public class User {
-        public string Name { get; }
-        public TcpClient Client { get; }
+        public class User {
+            public string Name { get; }
+            public TcpClient Client { get; }
+            public static UserComparer Comparer { get; } = new UserComparer();
 
-        public User(string name, TcpClient client) {
-            Name = name;
-            Client = client;
+            public User(string name, TcpClient client) {
+                Name = name;
+                Client = client;
+            }
+
+            public class UserComparer : IEqualityComparer<User> {
+                public bool Equals(User x, User y) => x.Name == y.Name;
+
+                public int GetHashCode(User obj) => obj.Name.GetHashCode();
+            }
         }
     }
 }
