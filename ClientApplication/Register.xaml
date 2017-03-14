@@ -6,14 +6,35 @@
         mc:Ignorable="d"
         Title="Register" Height="300" Width="300">
     <Grid>
-        <Label x:Name="Label" Content="Enter a UserName" HorizontalContentAlignment="Center"
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" x:Name="Label" Content="Enter a UserName" HorizontalContentAlignment="Center"
                HorizontalAlignment="Center"
                Margin="0,41,0,0" VerticalAlignment="Top" Width="272" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
             <TextBox x:Name="UserNameBox" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="UserName"
                      VerticalAlignment="Top" Width="120" />
             <Button x:Name="RegisterBtn" Content="Sign in" HorizontalAlignment="Left" VerticalAlignment="Top"
                     Width="75" Height="23" />
+        </StackPanel>
+        <StackPanel Grid.Row="2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Row="0" Margin="10" Grid.Column="0" Orientation="Vertical">
+                    <Label Content="Address" />
+                    <TextBox Height="23" Name="Address" />
+                </StackPanel>
+                <StackPanel Grid.Row="0" Margin="10" Grid.Column="1" Orientation="Vertical">
+                    <Label Content="Port" />
+                    <TextBox Height="23" Name="Port" />
+                </StackPanel>
+            </Grid>
         </StackPanel>
     </Grid>
 </Window>
