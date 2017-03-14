@@ -20,7 +20,7 @@ namespace ClientApplication {
 
         private async void OnLoaded(EventPattern<RoutedEventArgs> eventPattern) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
-            var chatClient = new ChatClient("10.0.2.15", 23000);
+            var chatClient = new ChatClient("192.168.1.93", 23000);
             try {
                 await chatClient.Connect();
             }

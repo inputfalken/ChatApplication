@@ -31,8 +31,8 @@ namespace Server {
         }
 
 
-        public static async Task StartAsync(string address, int port) {
-            var listener = new TcpListener(IPAddress.Parse(address), port);
+        public static async Task StartAsync(IPEndPoint ipEndPoint) {
+            var listener = new TcpListener(ipEndPoint);
             listener.Start();
             var subject = new Subject<TcpClient>();
 
