@@ -40,7 +40,7 @@ namespace Server {
                 .Subscribe(client => ClientConnects.OnNext($"Client: {client.Client.RemoteEndPoint} connected"));
 
             subject
-                .SelectMany(RegisterUserAsync, (client, s) => new User(s, client))
+                .SelectMany(RegisterUserAsync, (client, name) => new User(name, client))
                 .Subscribe(HandleRegisteredUser);
 
             while (true) {
