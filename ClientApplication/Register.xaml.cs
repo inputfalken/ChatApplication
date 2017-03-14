@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -20,9 +21,10 @@ namespace ClientApplication {
 
         private async void OnLoaded(EventPattern<RoutedEventArgs> eventPattern) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
-            var chatClient = new ChatClient("10.0.2.15", 23000);
+            var chatClient = new ChatClient();
             try {
-                await chatClient.Connect();
+                // TODO Add button for connecting, Connecting should not be done when you register.
+                await chatClient.Connect(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text)));
             }
             catch (Exception) {
                 MessageBox.Show("Could not establish an connection to the Server.");

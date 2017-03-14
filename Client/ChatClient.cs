@@ -12,14 +12,10 @@ using Action = Protocol.Action;
 namespace Client {
     public class ChatClient {
         private readonly TcpClient _client;
-        private readonly string _ip;
-        private readonly int _port;
         private Stream _stream;
 
 
-        public ChatClient(string ip, int port) {
-            _ip = ip;
-            _port = port;
+        public ChatClient() {
             _client = new TcpClient();
         }
 
@@ -28,8 +24,8 @@ namespace Client {
         public ISubject<string> MemberJoins { get; } = new Subject<string>();
         public ISubject<string> MemberDisconnects { get; } = new Subject<string>();
 
-        public async Task Connect() {
-            await _client.ConnectAsync(IPAddress.Parse(_ip), _port);
+        public async Task Connect(IPEndPoint ipEnd) {
+            await _client.ConnectAsync(ipEnd.Address, ipEnd.Port);
             _stream = _client.GetStream();
         }
 
