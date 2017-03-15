@@ -24,9 +24,15 @@ namespace Client {
         public ISubject<string> MemberJoins { get; } = new Subject<string>();
         public ISubject<string> MemberDisconnects { get; } = new Subject<string>();
 
-        public async Task Connect(IPEndPoint ipEnd) {
-            await _client.ConnectAsync(ipEnd.Address, ipEnd.Port);
-            _stream = _client.GetStream();
+        public async Task<bool> ConnectAsync(IPEndPoint ipEnd) {
+            try {
+                await _client.ConnectAsync(ipEnd.Address, ipEnd.Port);
+                _stream = _client.GetStream();
+                return true;
+            }
+            catch (Exception) {
+                return false;
+            }
         }
 
         public async Task SendChatMessageAsync(string message, string userName)

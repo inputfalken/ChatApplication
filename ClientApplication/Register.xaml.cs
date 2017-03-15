@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -19,24 +20,42 @@ namespace ClientApplication {
                 .Subscribe(OnLoaded);
         }
 
-        private async void OnLoaded(EventPattern<RoutedEventArgs> eventPattern) {
+        private void OnLoaded(EventPattern<RoutedEventArgs> eventPattern) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
             var chatClient = new ChatClient();
-            try {
-                // TODO Add button for connecting, Connecting should not be done when you register.
-                await chatClient.Connect(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text)));
-            }
-            catch (Exception) {
-                MessageBox.Show("Could not establish an connection to the Server.");
-                Close();
-            }
+
+            ObserveOnClick(ConnectBtn)
+                .Where(AddressIsValid)
+                .Where(PortIsValid)
+                .SelectMany(_ => chatClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text))))
+                .ObserveOn(dispatcherScheduler)
+                .Subscribe(sucessfullConnection => {
+                    if (sucessfullConnection) {
+                        Label.Text = "Successfully connected";
+                        ConnectBtn.IsEnabled = false;
+                    }
+                    else Label.Text = $"Could establish an connection to {Address.Text}:{Port.Text}";
+                });
+
             ObserveOnClick(RegisterBtn)
                 .SelectMany(_ => chatClient.RegisterAsync(UserNameBox.Text)) // Consumes the task
                 .ObserveOn(dispatcherScheduler) // Use the dispatcher for the following UI updates.
                 .Subscribe(successfulRegister => {
                     if (successfulRegister) ProceedToMainWindow(chatClient);
-                    else Label.Content = $"{UserNameBox.Text} is taken, try with a different name";
+                    else Label.Text = $"{UserNameBox.Text} is taken, try with a different name";
                 });
+        }
+
+        private bool PortIsValid(EventPattern<RoutedEventArgs> eventPattern) {
+            var isInteger = IsInteger(Port.Text);
+            if (!isInteger) Label.Text = "Port is invalid";
+            return isInteger;
+        }
+
+        private bool AddressIsValid(EventPattern<RoutedEventArgs> eventPattern) {
+            var isIpAddress = IsIpAddress(Address.Text);
+            if (!isIpAddress) Label.Text = "Address is invalid";
+            return isIpAddress;
         }
 
         private void ProceedToMainWindow(ChatClient client) {
