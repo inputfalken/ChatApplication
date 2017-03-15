@@ -43,7 +43,8 @@
             <Button x:Name="RegisterBtn" Content="Sign in" Grid.Column="1"
                     Margin="3"
                     VerticalAlignment="Top"
-                    Height="23" />
+                    Height="23"
+                    IsEnabled="False" />
         </Grid>
     </Grid>
 </Window>

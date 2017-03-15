@@ -30,12 +30,7 @@ namespace ClientApplication {
                 .SelectMany(
                     _ => chatClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text))))
                 .ObserveOn(dispatcherScheduler)
-                .Subscribe(sucessfullConnection => {
-                    ConnectBtn.IsEnabled = !sucessfullConnection;
-                    Label.Text = sucessfullConnection
-                        ? "Successfully connected"
-                        : $"Could establish an connection to {Address.Text}:{Port.Text}";
-                });
+                .Subscribe(OnConnectAttempt);
 
             ObserveOnClick(RegisterBtn)
                 .SelectMany(_ => chatClient.RegisterAsync(UserNameBox.Text)) // Consumes the task
@@ -44,6 +39,12 @@ namespace ClientApplication {
                     if (successfulRegister) ProceedToMainWindow(chatClient);
                     else Label.Text = $"{UserNameBox.Text} is taken, try with a different name";
                 });
+        }
+
+        private void OnConnectAttempt(bool sucessfullConnection) {
+            ConnectBtn.IsEnabled = !sucessfullConnection;
+            RegisterBtn.IsEnabled = sucessfullConnection;
+            Label.Text = sucessfullConnection ? "Successfully connected" : $"Could establish an connection to {Address.Text}:{Port.Text}";
         }
 
         private bool PortIsValid(EventPattern<RoutedEventArgs> eventPattern) {
