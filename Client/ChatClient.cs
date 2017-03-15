@@ -24,7 +24,7 @@ namespace Client {
         public ISubject<string> MemberJoins { get; } = new Subject<string>();
         public ISubject<string> MemberDisconnects { get; } = new Subject<string>();
 
-        public async Task<bool> ConnectAsync(IPEndPoint ipEnd) {
+        public async Task<bool> TryConnectAsync(IPEndPoint ipEnd) {
             try {
                 await _client.ConnectAsync(ipEnd.Address, ipEnd.Port);
                 _stream = _client.GetStream();

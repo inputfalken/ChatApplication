@@ -22,21 +22,22 @@ namespace ClientApplication {
 
         private void OnLoaded(EventPattern<RoutedEventArgs> eventPattern) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
-            var chatClient = new ChatClient();
+            var client = new ChatClient();
 
             ObserveOnClick(ConnectBtn)
                 .Where(AddressIsValid)
                 .Where(PortIsValid)
-                .SelectMany(
-                    _ => chatClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text))))
+                .SelectMany(_ =>
+                    client.TryConnectAsync(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text)))
+                )
                 .ObserveOn(dispatcherScheduler)
                 .Subscribe(OnConnectAttempt);
 
             ObserveOnClick(RegisterBtn)
-                .SelectMany(_ => chatClient.RegisterAsync(UserNameBox.Text)) // Consumes the task
+                .SelectMany(_ => client.RegisterAsync(UserNameBox.Text)) // Consumes the task
                 .ObserveOn(dispatcherScheduler) // Use the dispatcher for the following UI updates.
                 .Subscribe(successfulRegister => {
-                    if (successfulRegister) ProceedToMainWindow(chatClient);
+                    if (successfulRegister) ProceedToMainWindow(client);
                     else Label.Text = $"{UserNameBox.Text} is taken, try with a different name";
                 });
         }
@@ -44,7 +45,9 @@ namespace ClientApplication {
         private void OnConnectAttempt(bool sucessfullConnection) {
             ConnectBtn.IsEnabled = !sucessfullConnection;
             RegisterBtn.IsEnabled = sucessfullConnection;
-            Label.Text = sucessfullConnection ? "Successfully connected" : $"Could not establish an connection to {Address.Text}:{Port.Text}";
+            Label.Text = sucessfullConnection
+                ? "Successfully connected"
+                : $"Could not establish an connection to {Address.Text}:{Port.Text}";
         }
 
         private bool PortIsValid(EventPattern<RoutedEventArgs> eventPattern) {
