@@ -32,7 +32,6 @@ namespace ClientApplication {
                 .ObserveOn(dispatcherScheduler)
                 .Subscribe(sucessfullConnection => {
                     ConnectBtn.IsEnabled = !sucessfullConnection;
-                    DiscoConnect.IsEnabled = sucessfullConnection;
                     Label.Text = sucessfullConnection
                         ? "Successfully connected"
                         : $"Could establish an connection to {Address.Text}:{Port.Text}";

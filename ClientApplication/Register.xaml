@@ -24,7 +24,7 @@
             <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
                 <Label Margin="3" Content="Address" />
                 <TextBox Margin="3" Height="23" Name="Address" Text="192.168.1.92" />
-                <Button Margin="3" Content="Disconnect" Name="DiscoConnect" />
+                <Label Content="UserName" />
             </StackPanel>
             <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
                 <Label Margin="3" Content="Port" />
@@ -32,15 +32,16 @@
                 <Button Margin="3" Content="Connect" Name="ConnectBtn" />
             </StackPanel>
         </Grid>
-        <Grid Grid.Row="2" Margin="10">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <TextBox x:Name="UserNameBox" Grid.Column="0" Height="23" TextWrapping="Wrap"
-                     Text="UserName"
+                     Margin="3"
                      VerticalAlignment="Top" />
             <Button x:Name="RegisterBtn" Content="Sign in" Grid.Column="1"
+                    Margin="3"
                     VerticalAlignment="Top"
                     Height="23" />
         </Grid>
