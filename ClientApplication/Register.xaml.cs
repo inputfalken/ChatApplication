@@ -44,7 +44,7 @@ namespace ClientApplication {
         private void OnConnectAttempt(bool sucessfullConnection) {
             ConnectBtn.IsEnabled = !sucessfullConnection;
             RegisterBtn.IsEnabled = sucessfullConnection;
-            Label.Text = sucessfullConnection ? "Successfully connected" : $"Could establish an connection to {Address.Text}:{Port.Text}";
+            Label.Text = sucessfullConnection ? "Successfully connected" : $"Could not establish an connection to {Address.Text}:{Port.Text}";
         }
 
         private bool PortIsValid(EventPattern<RoutedEventArgs> eventPattern) {
