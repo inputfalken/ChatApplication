@@ -34,17 +34,17 @@ namespace Server {
         public static async Task StartAsync(IPEndPoint ipEndPoint) {
             var listener = new TcpListener(ipEndPoint);
             listener.Start();
-            var subject = new Subject<TcpClient>();
+            var clientConnects = new Subject<TcpClient>();
 
-            subject
+            clientConnects
                 .Subscribe(client => ClientConnects.OnNext($"Client: {client.Client.RemoteEndPoint} connected"));
 
-            subject
+            clientConnects
                 .SelectMany(RegisterUserAsync)
                 .Subscribe(HandleRegisteredUser);
 
             while (true) {
-                subject.OnNext(await listener.AcceptTcpClientAsync());
+                clientConnects.OnNext(await listener.AcceptTcpClientAsync());
             }
         }
 
