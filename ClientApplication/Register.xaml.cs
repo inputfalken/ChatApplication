@@ -27,14 +27,15 @@ namespace ClientApplication {
             ObserveOnClick(ConnectBtn)
                 .Where(AddressIsValid)
                 .Where(PortIsValid)
-                .SelectMany(_ => chatClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text))))
+                .SelectMany(
+                    _ => chatClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(Address.Text), int.Parse(Port.Text))))
                 .ObserveOn(dispatcherScheduler)
                 .Subscribe(sucessfullConnection => {
-                    if (sucessfullConnection) {
-                        Label.Text = "Successfully connected";
-                        ConnectBtn.IsEnabled = false;
-                    }
-                    else Label.Text = $"Could establish an connection to {Address.Text}:{Port.Text}";
+                    ConnectBtn.IsEnabled = !sucessfullConnection;
+                    DiscoConnect.IsEnabled = sucessfullConnection;
+                    Label.Text = sucessfullConnection
+                        ? "Successfully connected"
+                        : $"Could establish an connection to {Address.Text}:{Port.Text}";
                 });
 
             ObserveOnClick(RegisterBtn)
