@@ -24,7 +24,6 @@ namespace ClientApplication {
 
         private void OnLoaded(ChatClient chatClient) {
             var dispatcherScheduler = new DispatcherScheduler(Dispatcher);
-
             ObserveOnClick(SendBtn)
                 .Select(_ => MessageInputBox.Text)
                 .Subscribe(async message => {
@@ -53,6 +52,7 @@ namespace ClientApplication {
             FromEventPattern<EventHandler, EventArgs>(e => Closed += e, e => Closed -= e)
                 .Subscribe(_ => chatClient.CloseConnection());
 
+            Task.Run(chatClient.RequestChat);
             Task.Run(chatClient.ListenAsync);
         }
 

@@ -1,6 +1,6 @@
 namespace Protocol {
     public enum Action {
-        MemberJoin,
+        MemberJoin, Chat,
         MemberDisconnect,
         Message,
         Status,
