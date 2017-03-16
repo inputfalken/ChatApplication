@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Subjects;
@@ -35,8 +36,33 @@ namespace Client {
             }
         }
 
-        public async Task SendChatMessageAsync(string message, string userName)
-            => await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
+        private const string Value = "/w ";
+
+        /// <summary>
+        /// Returns the chatmessage.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        public async Task<string> SendChatMessageAsync(string message, string userName) {
+            await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
+            return message;
+        }
+
+        public static bool IsPm(string message) => message.StartsWith(Value);
+
+        /// <summary>
+        /// Returns the chat message without pm prefix.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="userName"></param>
+        /// <param name="recipent"></param>
+        /// <returns></returns>
+        public async Task SendPm(string message, string userName, string recipent) {
+            var privateMessage = new PrivateMessage(userName, recipent, message);
+            await SendMessageAsync(Create(Action.PrivateChatMessage, privateMessage), _stream);
+        }
+
 
         public async Task ListenAsync() {
             using (var reader = new StreamReader(_client.GetStream())) {
@@ -81,5 +107,18 @@ namespace Client {
             _client.GetStream().Close();
             _client.Close();
         }
+
+
+        public static string ExtractRecipent(string message) {
+            return new string(message
+                .Skip(Value.Length)
+                .TakeWhile(c => !char.IsSeparator(c)) // UserNames cannot contain spaces with this logic!
+                .ToArray());
+        }
+
+        public static string RemoveRecipent(string message, string recipent) => message
+            .Remove(0, recipent.Length + Value.Length);
+
+        // TODO need to check if member exitst before sending it.           
     }
 }

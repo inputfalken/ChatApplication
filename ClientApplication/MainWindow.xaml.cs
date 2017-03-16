@@ -27,10 +27,7 @@ namespace ClientApplication {
 
             ObserveOnClick(SendBtn)
                 .Select(_ => MessageInputBox.Text)
-                .Subscribe(async message => {
-                    AddToChatBox(message);
-                    await chatClient.SendChatMessageAsync(message, _userName);
-                });
+                .Subscribe(async text => await SendMessage(chatClient, text));
 
             chatClient.MessageRecieved
                 .ObserveOn(dispatcherScheduler)
@@ -56,7 +53,19 @@ namespace ClientApplication {
             Task.Run(chatClient.ListenAsync);
         }
 
-
-        private void AddToChatBox(string message) => ChatBox.Items.Add(message);
+        private async Task SendMessage(ChatClient chatClient, string text) {
+            string displayMessage;
+            if (ChatClient.IsPm(text)) {
+                var recipent = ChatClient.ExtractRecipent(text);
+                var msg = ChatClient.RemoveRecipent(text, recipent);
+                await chatClient.SendPm(msg, _userName, recipent);
+                displayMessage = $"PM {recipent}: {msg}";
+            }
+            else {
+                await chatClient.SendChatMessageAsync(text, _userName);
+                displayMessage = text;
+            }
+            ChatBox.Items.Add(displayMessage);
+        }
     }
 }

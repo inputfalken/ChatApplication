@@ -50,14 +50,14 @@ namespace Server {
 
         private static async Task<User> RegisterUserAsync(TcpClient client) {
             var maybe = await TryRegisterUserAsync(client);
-            await SendMessageAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
+            await Message.SendMessageAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
             return maybe.HasValue ? maybe.Value : await RegisterUserAsync(client);
         }
 
         private static async void HandleRegisteredUser(User user) {
-            ClientRegistered.OnNext($"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}");
+            ClientRegistered.OnNext($"{user.Client.Client.RemoteEndPoint} Successfully registered with {user.Name}");
             var clientStream = user.Client.GetStream();
-            await SendMessageAsync(Create(Action.SendMembers, Users.Select(u => u.Name).ToArray()), clientStream);
+            await Message.SendMessageAsync(Create(Action.SendMembers, Users.Select(u => u.Name).ToArray()), clientStream);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, user.Name), clientStream);
             await ChatSessionAsync(clientStream);
             await DisconnectClientAsync(user);
@@ -67,7 +67,7 @@ namespace Server {
             var clientsMessaged = Users
                 .Select(user => user.Client.GetStream())
                 .Where(stream => !stream.Equals(clientStream))
-                .Select(stream => SendMessageAsync(message, stream));
+                .Select(stream => Message.SendMessageAsync(message, stream));
             await Task.WhenAll(clientsMessaged);
             ClientMessage.OnNext(message.ToString());
         }
@@ -85,11 +85,39 @@ namespace Server {
 
         private static async Task HandleMessage(Message message, Stream stream) {
             // This is where the client can create requests about specifik data.
-            if (message.Action == Action.ChatMessage) {
-                var memberMessage = message.Parse<ChatMessage>();
-                await MessageOtherClientsAsync(Create(Action.ChatMessage, memberMessage), stream);
+            switch (message.Action) {
+                case Action.ChatMessage:
+                    var memberMessage = message.Parse<ChatMessage>();
+                    await MessageOtherClientsAsync(Create(Action.ChatMessage, memberMessage), stream);
+                    break;
+                case Action.PrivateChatMessage:
+                    var pm = message.Parse<PrivateMessage>();
+
+                    var maybeUser = Users //Maybe a user
+                        .SingleOrDefault(user => user.Name.Equals(pm.Recipent)) // Could be null
+                        .ToMaybe() // Do the following functions as long as user is not null
+                        .Select(user => user.Client.GetStream());
+
+                    await maybeUser //TODO Replace personal ChatMessage with a PrivateMessage.
+                        .Where(rStream => rStream.Equals(stream))
+                        .SelectOrElse(
+                            rStream => SendPm(rStream, "You just whispered yourself", Server),
+                            //Client whispered himself
+                            () => maybeUser.SelectOrElse(
+                                rStream => SendPm(rStream, pm.Message, pm.Recipent),
+                                // Client whispered a different client
+                                () => SendPm(stream, "PM: There's no user with that name", Server)
+                                // Client whispered a none existing client.
+                            )
+                        );
+
+                    break;
             }
         }
+
+
+        private static Task SendPm(Stream recipentStream, string message, string recipent)
+            => SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(recipent, message)), recipentStream);
 
         private static async Task DisconnectClientAsync(User user) {
             var message = Create(Action.MemberDisconnect, user.Name);
@@ -99,7 +127,7 @@ namespace Server {
         }
 
         private static async Task AnnounceAsync(Message message) =>
-            await Task.WhenAll(Users.Select(pair => SendMessageAsync(message, pair.Client.GetStream())));
+            await Task.WhenAll(Users.Select(pair => Message.SendMessageAsync(message, pair.Client.GetStream())));
 
 
         private static async Task<Maybe<User>> TryRegisterUserAsync(TcpClient client) {

@@ -5,6 +5,7 @@ namespace Protocol {
         Message,
         Status,
         SendMembers,
-        ChatMessage
+        ChatMessage,
+        PrivateChatMessage
     }
 }
