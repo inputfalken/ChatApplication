@@ -66,9 +66,17 @@ namespace Server {
             SubjectClientRegistered.OnNext(
                 $"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}");
             var clientStream = user.Client.GetStream();
-            await SendMessageAsync(Create(Action.SendMembers, Users.Select(u => u.Name).ToArray()), clientStream);
-            await MessageOtherClientsAsync(Create(Action.MemberJoin, user.Name), clientStream);
-            await ChatSessionAsync(clientStream);
+            var message = ParseMessage(await new StreamReader(clientStream).ReadLineAsync()); // Temp solution
+            if (message.Action == Action.Chat) {
+                await SendMessageAsync(Create(Action.SendMembers, Users.Select(u => u.Name).ToArray()), clientStream);
+                await MessageOtherClientsAsync(Create(Action.MemberJoin, user.Name), clientStream);
+                await ChatSessionAsync(clientStream);
+            }
+            else {
+                await SendMessageAsync(
+                    Create(Action.ChatMessage,
+                        new ChatMessage(Server, "You can only request a chat session at this time")), clientStream);
+            }
             await DisconnectClientAsync(user);
         }
 
