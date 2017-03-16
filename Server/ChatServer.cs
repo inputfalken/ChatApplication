@@ -18,16 +18,24 @@ namespace Server {
     public static class ChatServer {
         private const string Server = "Server";
         private static readonly ISet<User> Users = new HashSet<User>(User.Comparer);
-        public static ISubject<string> ClientMessage { get; }
-        public static ISubject<string> ClientConnects { get; }
-        public static ISubject<string> ClientDisconects { get; }
-        public static ISubject<string> ClientRegistered { get; }
+        private static readonly ISubject<string> SubjectClientRegistered;
+        private static readonly ISubject<string> SubjectClientDisconects;
+        private static readonly ISubject<string> SubjectClientConnects;
+        private static readonly ISubject<string> SubjectClientMessage;
+
+        public static IObservable<string> ClientMessage => SubjectClientMessage;
+
+        public static IObservable<string> ClientConnects => SubjectClientConnects;
+
+        public static IObservable<string> ClientDisconects => SubjectClientDisconects;
+
+        public static IObservable<string> ClientRegistered => SubjectClientRegistered;
 
         static ChatServer() {
-            ClientMessage = new Subject<string>();
-            ClientConnects = new Subject<string>();
-            ClientDisconects = new Subject<string>();
-            ClientRegistered = new Subject<string>();
+            SubjectClientMessage = new Subject<string>();
+            SubjectClientConnects = new Subject<string>();
+            SubjectClientDisconects = new Subject<string>();
+            SubjectClientRegistered = new Subject<string>();
         }
 
 
@@ -37,7 +45,7 @@ namespace Server {
             var subject = new Subject<TcpClient>();
 
             subject
-                .Subscribe(client => ClientConnects.OnNext($"Client: {client.Client.RemoteEndPoint} connected"));
+                .Subscribe(client => SubjectClientConnects.OnNext($"Client: {client.Client.RemoteEndPoint} connected"));
 
             subject
                 .SelectMany(RegisterUserAsync)
@@ -55,7 +63,8 @@ namespace Server {
         }
 
         private static async void HandleRegisteredUser(User user) {
-            ClientRegistered.OnNext($"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}");
+            SubjectClientRegistered.OnNext(
+                $"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}");
             var clientStream = user.Client.GetStream();
             await SendMessageAsync(Create(Action.SendMembers, Users.Select(u => u.Name).ToArray()), clientStream);
             await MessageOtherClientsAsync(Create(Action.MemberJoin, user.Name), clientStream);
@@ -69,7 +78,7 @@ namespace Server {
                 .Where(stream => !stream.Equals(clientStream))
                 .Select(stream => SendMessageAsync(message, stream));
             await Task.WhenAll(clientsMessaged);
-            ClientMessage.OnNext(message.ToString());
+            SubjectClientMessage.OnNext(message.ToString());
         }
 
         private static async Task ChatSessionAsync(Stream stream) {
@@ -95,7 +104,7 @@ namespace Server {
             var message = Create(Action.MemberDisconnect, user.Name);
             lock (Users) Users.Remove(user);
             await AnnounceAsync(message);
-            ClientDisconects.OnNext(message.ToString());
+            SubjectClientDisconects.OnNext(message.ToString());
         }
 
         private static async Task AnnounceAsync(Message message) =>
