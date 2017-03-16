@@ -1,10 +1,12 @@
 namespace Protocol {
     public enum Action {
-        MemberJoin, Chat,
+        MemberJoin,
+        Chat,
         MemberDisconnect,
         Message,
         Status,
         SendMembers,
-        ChatMessage
+        ChatMessage,
+        PrivateChatMessage
     }
 }

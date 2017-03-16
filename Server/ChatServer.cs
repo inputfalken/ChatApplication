@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +9,6 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Functional.Maybe;
 using Protocol;
-using ReactiveUI;
 using static Protocol.Message;
 using Action = Protocol.Action;
 
@@ -23,6 +21,13 @@ namespace Server {
         private static readonly ISubject<string> SubjectClientConnects;
         private static readonly ISubject<string> SubjectClientMessage;
 
+        static ChatServer() {
+            SubjectClientMessage = new Subject<string>();
+            SubjectClientConnects = new Subject<string>();
+            SubjectClientDisconects = new Subject<string>();
+            SubjectClientRegistered = new Subject<string>();
+        }
+
         public static IObservable<string> ClientMessage => SubjectClientMessage;
 
         public static IObservable<string> ClientConnects => SubjectClientConnects;
@@ -30,13 +35,6 @@ namespace Server {
         public static IObservable<string> ClientDisconects => SubjectClientDisconects;
 
         public static IObservable<string> ClientRegistered => SubjectClientRegistered;
-
-        static ChatServer() {
-            SubjectClientMessage = new Subject<string>();
-            SubjectClientConnects = new Subject<string>();
-            SubjectClientDisconects = new Subject<string>();
-            SubjectClientRegistered = new Subject<string>();
-        }
 
 
         public static async Task StartAsync(IPEndPoint ipEndPoint) {
@@ -51,9 +49,7 @@ namespace Server {
                 .SelectMany(RegisterUserAsync)
                 .Subscribe(HandleRegisteredUser);
 
-            while (true) {
-                subject.OnNext(await listener.AcceptTcpClientAsync());
-            }
+            while (true) subject.OnNext(await listener.AcceptTcpClientAsync());
         }
 
         private static async Task<User> RegisterUserAsync(TcpClient client) {
@@ -102,15 +98,45 @@ namespace Server {
 
         private static async Task HandleMessage(Message message, Stream stream) {
             // This is where the client can create requests about specifik data.
-            if (message.Action == Action.ChatMessage) {
-                var memberMessage = message.Parse<ChatMessage>();
-                await MessageOtherClientsAsync(Create(Action.ChatMessage, memberMessage), stream);
+            switch (message.Action) {
+                case Action.ChatMessage:
+                    var memberMessage = message.Parse<ChatMessage>();
+                    await MessageOtherClientsAsync(Create(Action.ChatMessage, memberMessage), stream);
+                    break;
+                case Action.PrivateChatMessage:
+                    var pm = message.Parse<PrivateMessage>();
+
+                    var maybeUser = Users //Maybe a user
+                        .SingleOrDefault(user => user.Name.Equals(pm.Recipent)) // Could be null
+                        .ToMaybe() // Do the following functions as long as user is not null
+                        .Select(user => user.Client.GetStream());
+
+                    await maybeUser //TODO Replace personal ChatMessage with a PrivateMessage.
+                        .Where(rStream => rStream.Equals(stream))
+                        .SelectOrElse(
+                            rStream => SendPm(rStream, "You just whispered yourself", Server),
+                            //Client whispered himself
+                            () => maybeUser.SelectOrElse(
+                                rStream => SendPm(rStream, pm.Message, pm.Recipent),
+                                // Client whispered a different client
+                                () => SendPm(stream, "PM: There's no user with that name", Server)
+                                // Client whispered a none existing client.
+                            )
+                        );
+
+                    break;
             }
         }
 
+
+        private static Task SendPm(Stream recipentStream, string message, string recipent)
+            => SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(recipent, message)), recipentStream);
+
         private static async Task DisconnectClientAsync(User user) {
             var message = Create(Action.MemberDisconnect, user.Name);
-            lock (Users) Users.Remove(user);
+            lock (Users) {
+                Users.Remove(user);
+            }
             await AnnounceAsync(message);
             SubjectClientDisconects.OnNext(message.ToString());
         }
@@ -128,19 +154,21 @@ namespace Server {
                 .Where(userName => userName != Server) // Check that username is not the the reserved name Server
                 .Select(userName => new User(userName, client))
                 .Where(user => {
-                    lock (Users) return Users.Add(user);
+                    lock (Users) {
+                        return Users.Add(user);
+                    }
                 });
         }
 
         public class User {
-            public string Name { get; }
-            public TcpClient Client { get; }
-            public static UserComparer Comparer { get; } = new UserComparer();
-
             public User(string name, TcpClient client) {
                 Name = name;
                 Client = client;
             }
+
+            public string Name { get; }
+            public TcpClient Client { get; }
+            public static UserComparer Comparer { get; } = new UserComparer();
 
             public class UserComparer : IEqualityComparer<User> {
                 public bool Equals(User x, User y) => x.Name == y.Name;
