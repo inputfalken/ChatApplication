@@ -115,21 +115,25 @@ namespace Server {
                 case Action.PrivateChatMessage:
                     var pm = message.Parse<PrivateMessage>();
 
-                    var maybeUser = Users //Maybe a user
+                    // If this got a value it means that the user is trying to whisper another user.
+                    var maybeUser = Users
                         .SingleOrDefault(user => user.Name.Equals(pm.Recipent)) // Could be null
                         .ToMaybe() // Do the following functions as long as user is not null
                         .Select(user => user.Client.GetStream());
 
-                    await maybeUser //TODO Replace personal ChatMessage with a PrivateMessage.
-                        .Where(rStream => rStream.Equals(stream))
+                    // If this got a value it means that the user is trying to whisper himself.
+                    var maybeSelf = maybeUser
+                        .Where(rStream => rStream.Equals(stream));
+
+                    await maybeSelf
                         .SelectOrElse(
-                            rStream => SendPm(rStream, "You just whispered yourself", Server),
                             //Client whispered himself
+                            rStream => SendPm(rStream, "You just whispered yourself", Server),
                             () => maybeUser.SelectOrElse(
-                                rStream => SendPm(rStream, pm.Message, pm.Recipent),
                                 // Client whispered a different client
-                                () => SendPm(stream, "PM: There's no user with that name", Server)
+                                rStream => SendPm(rStream, pm.Message, pm.Recipent),
                                 // Client whispered a none existing client.
+                                () => SendPm(stream, "PM: There's no user with that name", Server)
                             )
                         );
 
@@ -160,8 +164,10 @@ namespace Server {
                 .ToMaybe()
                 .Where(message => message.Action == Action.MemberJoin) // Check that the client sends the right action.
                 .Select(message => message.Parse<string>())
+                // Since the previous function succeded we know that we can parse the message into a string.
                 .Where(userName => userName != Server) // Check that username is not the the reserved name Server
                 .Select(userName => new User(userName, client))
+                // Map the sucessfully username into a user object which requires a string and TcpClient
                 .Where(user => {
                     lock (Users) {
                         return Users.Add(user);
@@ -169,7 +175,8 @@ namespace Server {
                 });
         }
 
-        public class User {
+        // User is a part of ChatServer and therefor only accessable from client
+        private class User {
             public User(string name, TcpClient client) {
                 Name = name;
                 Client = client;
