@@ -163,11 +163,9 @@ namespace Server {
             return ParseMessage(await streamReader.ReadLineAsync())
                 .ToMaybe()
                 .Where(message => message.Action == Action.MemberJoin) // Check that the client sends the right action.
-                .Select(message => message.Parse<string>())
-                // Since the previous function succeded we know that we can parse the message into a string.
-                .Where(userName => userName != Server) // Check that username is not the the reserved name Server
-                .Select(userName => new User(userName, client))
-                // Map the sucessfully username into a user object which requires a string and TcpClient
+                .Select(message => message.Parse<string>()) // Since the previous function succeded we know that we can parse the message into a string.
+                .Where(userName => userName != Server) // Check that username is not the reserved name Server
+                .Select(userName => new User(userName, client)) // Map the sucessfully username into a user object which requires a string and TcpClient
                 .Where(user => {
                     lock (Users) {
                         return Users.Add(user);
