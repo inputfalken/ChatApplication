@@ -40,27 +40,35 @@ namespace Server {
         public static async Task StartAsync(IPEndPoint ipEndPoint) {
             var listener = new TcpListener(ipEndPoint);
             listener.Start();
+            // Everything on clientjoins does not get executed before clientjoins receives a client which happens in the while loop.
             var clientJoins = new Subject<TcpClient>();
-
+            // Let the Application know that a client has connected.
             clientJoins
                 .Subscribe(client => SubjectClientConnects.OnNext($"Client: {client.Client.RemoteEndPoint} connected"));
 
+            // Handle the client.
             clientJoins
-                .SelectMany(RegisterUserAsync)
+                .SelectMany(RegisterUserAsync) // Flatmap the register task containing a user.
                 .Subscribe(HandleRegisteredUser);
 
-            while (true) clientJoins.OnNext(await listener.AcceptTcpClientAsync());
+            while (true)
+                clientJoins.OnNext(await listener.AcceptTcpClientAsync());
+            // the client will be send through the clientJoins.
         }
 
         private static async Task<User> RegisterUserAsync(TcpClient client) {
+            // Returns a maybe which could have a value. If maybe has a value we got a user inside of it.
+            // If we don't have a value we need to repeat the process.
             var maybe = await TryRegisterUserAsync(client);
             await SendMessageAsync(Create(Action.Status, maybe.HasValue), client.GetStream());
             return maybe.HasValue ? maybe.Value : await RegisterUserAsync(client);
         }
 
         private static async void HandleRegisteredUser(User user) {
+            // Notify application that user managed to register.
             SubjectClientRegistered.OnNext(
-                $"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}");
+                $"{user.Client.Client.RemoteEndPoint} Sucessfully registered with {user.Name}"
+            );
             var clientStream = user.Client.GetStream();
             var message = ParseMessage(await new StreamReader(clientStream).ReadLineAsync()); // Temp solution
             if (message.Action == Action.Chat) {
@@ -88,6 +96,7 @@ namespace Server {
         private static async Task ChatSessionAsync(Stream stream) {
             var connected = true;
             using (var reader = new StreamReader(stream)) {
+                // If the maybe got no value it means that the connection is lost.
                 while (connected)
                     connected = (await ReadMessageAsync(reader))
                         .ToMaybe()
