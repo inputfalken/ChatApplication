@@ -71,7 +71,7 @@ namespace Server {
             );
             var clientStream = user.Client.GetStream();
             var message = ParseMessage(await new StreamReader(clientStream).ReadLineAsync()); // Temp solution
-            if (message.Action == Action.Chat) {
+            if (message.Action == Action.ChatSession) {
                 await SendMessageAsync(Create(Action.SendMembers, Users.Select(u => u.Name).ToArray()), clientStream);
                 await MessageOtherClientsAsync(Create(Action.MemberJoin, user.Name), clientStream);
                 await ChatSessionAsync(clientStream);

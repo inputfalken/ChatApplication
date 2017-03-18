@@ -37,7 +37,7 @@ namespace Client {
             }
         }
 
-        public async Task RequestChat() => await SendMessageAsync(Create(Action.Chat, true), _stream);
+        public async Task RequestChat() => await SendMessageAsync(Create(Action.ChatSession, true), _stream);
 
         public async Task SendChatMessageAsync(string message, string userName)
             => await SendMessageAsync(Create(Action.ChatMessage, new ChatMessage(userName, message)), _stream);
